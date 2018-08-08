@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Android Template</string>
+    <string name="settings">Settings</string>
+    <string name="lorem_ipsum">Sugar plum sugar plum gummies donut jelly powder. Icing muffin cheesecake liquorice wafer bonbon. Bonbon tootsie roll halvah. Lollipop macaroon bear claw chocolate cake. Chocolate bar gummi bears candy cheesecake icing oat cake. Cake chocolate cake liquorice pie. Donut halvah lollipop. Bear claw lollipop sweet roll cookie dragée dragée donut candy. Cheesecake liquorice marzipan dragée muffin chocolate dessert jujubes. Cupcake ice cream tootsie roll bonbon croissant gingerbread ice cream danish. Jelly beans donut jujubes sugar plum. Tootsie roll tiramisu chupa chups dragée cheesecake brownie chocolate bar chocolate bar icing. Apple pie cake carrot cake gingerbread candy canes</string>
+    <string name="article_detail_more_info">More Info</string>
+
+
+    <string name="samples_title">Hello title</string>
+    <string name="samples_subhead">Hello Subhead</string>
+    <string name="samples_hint_username">Username</string>
+    <string name="samples_hint_email">E-Mail</string>
+    <string-array name="status">
+        <item>נשלח לבדיקה</item>
+        <item>שולם</item>
+        <item>חייב</item>
+    </string-array>
+    <string-array name="products">
+        <item>אתרוג</item>
+        <item>לולב</item>
+    </string-array>
+    <string name="navigation_title">My navigation title</string>
+    <string name="navigation_quotes">Quotes</string>
+    <string name="navigation_samples">Samples</string>
+    <string name="navigation_settings">Settings</string>
+    <string name="navigation_sub_items">Sub items</string>
+    <string name="navigation_dummy_item_1">Dummy item 1</string>
+    <string name="navigation_dummy_item_2">Dummy item 2</string>
+    <string name="mobile">טלפון נייד</string>
+    <string name="client_details"><u>פרטי הלקוח</u></string>
+    <string name="full_name">שם מלא</string>
+    <string name="home_phone">טלפון בבית</string>
+    <string name="address">כתובת</string>
+    <string name="email">אימייל</string>
+    <string name="orders"><u>ניהול הזמנות</u></string>
+    <string name="neww">חדש</string>
+    <string name="notifications"><u>התראות</u></string>
+    <string name="hint_password">סיסמא</string>
+    <string name="action_sign_in_short">יש לך כבר חשבון? היכנס עכשיו</string>
+    <string name="btn_forgot_password">שכחתי סיסמא</string>
+    <string name="btn_link_to_login">כניסה</string>
+    <string name="enter_email_address">נא הזן אימייל</string>
+    <string name="enter_password">נא הזן סיסמא</string>
+    <string name="pass_short">מינימום 6 תווים!</string>
+    <string name="user_exist">המשתמש כבר קיים</string>
+    <string name="failed_auth">האימות נכשל אנא נסה שוב</string>
+    <string name="login">כניסה</string>
+    <string name="btn_link_to_register">אין לך חשבון? צור כאן</string>
+    <string name="create_account">צור חשבון</string>
+    <string name="save">שמור</string>
+    <string name="fast_order"><u>יצירת הזמנה</u></string>
+    <string name="product">מוצר:</string>
+    <string name="quantity">כמות:</string>
+    <string name="price">מחיר</string>
+    <string name="type_quantitiy">הזן כמות</string>
+    <string name="order_status">סטטוס מוצר:</string>
+    <string name="notes">הערות</string>
+    <string name="owe">הזן חוב</string>
+    <string name="owe2">חייב</string>
+    <string name="insert">הכנס</string>
+    <string name="no_connection">שגיאה בחיבור אנא נסה שנית מאוחר יותר!</string>
+    <string name="client_details_missing">שם ומספר נייד חובה</string>
+    <string name="orders_notification"><u>הזמנות והתראות</u></string>
+    <string name="created">נוצר ב:</string>
+    <string name="order_details"><u>פרטי הזמנה</u></string>
+</resources>

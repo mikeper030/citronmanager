@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "510230091306",
+    "firebase_url": "https://citron-manager.firebaseio.com",
+    "project_id": "citron-manager",
+    "storage_bucket": "citron-manager.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:510230091306:android:90d105258d0bde1d",
+        "android_client_info": {
+          "package_name": "com.ultimatesoftil.citron"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "510230091306-5gjbtn7cesui3mjo67qk7vooosp9lpfb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDxSIHPRXyzQ1-K8MoRc939_2Jbcg6tTus"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -149,8 +149,8 @@
             app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
         <com.jaredrummler.materialspinner.MaterialSpinner
-            android:id="@+id/spinner"
-            android:layout_width="wrap_content"
+            android:id="@+id/order_spinner"
+            android:layout_width="200dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_marginTop="48dp"
@@ -158,7 +158,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <android.support.design.widget.TextInputEditText
-            android:id="@+id/add_quantity"
+            android:id="@+id/order_quantity"
             android:layout_width="60dp"
             android:layout_height="wrap_content"
 
@@ -166,26 +166,28 @@
             android:layout_marginTop="8dp"
             android:inputType="number"
             app:layout_constraintStart_toEndOf="@+id/textView8"
-            app:layout_constraintTop_toBottomOf="@+id/spinner" />
+            app:layout_constraintTop_toBottomOf="@+id/order_spinner" />
 
         <ScrollView
-            android:id="@+id/ScrollView"
+            android:id="@+id/ScrollView2"
             android:layout_width="381dp"
-            android:layout_height="370dp"
+            android:layout_height="396dp"
 
             android:layout_marginBottom="8dp"
             android:layout_marginEnd="48dp"
+            android:layout_marginTop="8dp"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent">
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/order_quantity">
 
             <LinearLayout
-                android:id="@+id/fields1"
+                android:id="@+id/fields2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
 
                 android:orientation="vertical"
 
-                app:layout_constraintTop_toBottomOf="@+id/add_quantity">
+                app:layout_constraintTop_toBottomOf="@+id/order_quantity">
 
             </LinearLayout>
         </ScrollView>
@@ -212,6 +214,43 @@
 
             app:layout_constraintStart_toEndOf="@+id/constraintLayout2"
             app:layout_constraintTop_toBottomOf="@+id/textView7" />
+
+        <LinearLayout
+            android:layout_width="446dp"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:layout_marginStart="16dp"
+            android:background="@drawable/layout_round_corner"
+            android:orientation="vertical"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/notifications"
+                android:textAppearance="@style/TextAppearance.AppCompat.Title" />
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <Switch
+                    android:id="@+id/notif_switch"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content" />
+
+                <ListView
+                    android:id="@+id/notif_list"
+                    android:layout_width="370dp"
+                    android:layout_height="250dp"
+                    android:layout_marginTop="30dp">
+
+                </ListView>
+            </LinearLayout>
+        </LinearLayout>
+
     </android.support.constraint.ConstraintLayout>
 
 </RelativeLayout>

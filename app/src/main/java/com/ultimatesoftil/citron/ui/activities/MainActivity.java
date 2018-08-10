@@ -17,6 +17,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
+import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.ui.base.BaseActivity;
@@ -34,24 +35,45 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
      * Whether or not the activity is running on a device with a large screen
      */
     private boolean twoPaneMode;
-
+    private FirebaseAuth auth;
+    private FirebaseDatabase mFirebaseDatabase;
+    private String userID;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
+        auth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        FirebaseUser user = auth.getCurrentUser();
 
-        setupToolbar();
 
-        if (isTwoPaneLayoutUsed()) {
-            twoPaneMode = true;
-            LogUtil.logD("TEST","TWO POANE TASDFES");
-            enableActiveItemState();
+
+        try {
+            userID = user.getUid();
+        } catch (Exception e) {
+            startActivity(new Intent(MainActivity.this,EmailLogin.class));
+            finish();
+            Snackbar.make(findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
+        }
+        if(user==null||userID==null){
+            startActivity(new Intent(MainActivity.this,EmailLogin.class));
+            finish();
+        }else{
+            setupToolbar();
+            Log.d("user",user.getUid());
+            if (isTwoPaneLayoutUsed()) {
+                twoPaneMode = true;
+                LogUtil.logD("TEST","TWO POANE TASDFES");
+                enableActiveItemState();
+            }
+
+            if (savedInstanceState == null && twoPaneMode) {
+
+                setupDetailFragment();
+            }
         }
 
-        if (savedInstanceState == null && twoPaneMode) {
-            setupDetailFragment();
-        }
     }
 
     /**

@@ -55,9 +55,9 @@ public class OrderListAdapter extends BaseAdapter{
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup container) {
+    public View getView(final int position, View convertView, ViewGroup container) {
         if (convertView == null) {
-            final int[] counter = {0};
+            final int[] counter = {1};
 
             convertView = LayoutInflater.from(context).inflate(R.layout.order_item1, container, false);
             convertView.setOnClickListener(new View.OnClickListener() {
@@ -84,8 +84,10 @@ public class OrderListAdapter extends BaseAdapter{
                             @Override
                             public void onClick(View view) {
                              //open order details
+                                Order order=orders.get(position);
                                 AppCompatActivity activity = (AppCompatActivity) view.getContext();
                                 Bundle bundle=new Bundle();
+                                bundle.putSerializable("order",order);
                                 bundle.putSerializable("client",client);
                                 OrderDetailsFragment fragobj = new OrderDetailsFragment();
                                 fragobj.setArguments(bundle);

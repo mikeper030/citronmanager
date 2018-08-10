@@ -169,7 +169,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
                 <com.jaredrummler.materialspinner.MaterialSpinner
-                    android:id="@+id/spinner"
+                    android:id="@+id/order_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -178,7 +178,7 @@
                     app:layout_constraintTop_toBottomOf="@+id/textView2" />
 
                 <android.support.design.widget.TextInputEditText
-                    android:id="@+id/add_quantity"
+                    android:id="@+id/order_quantity"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
@@ -186,7 +186,7 @@
                     android:hint="@string/type_quantitiy"
                     android:inputType="number"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/spinner" />
+                    app:layout_constraintTop_toBottomOf="@+id/order_spinner" />
 
                 <ScrollView
                     android:id="@+id/ScrollView"
@@ -200,7 +200,7 @@
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintHorizontal_bias="1.0"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/add_quantity">
+                    app:layout_constraintTop_toBottomOf="@+id/order_quantity">
 
                     <LinearLayout
                         android:id="@+id/fields1"
@@ -209,7 +209,7 @@
 
                         android:orientation="vertical"
 
-                        app:layout_constraintTop_toBottomOf="@+id/add_quantity">
+                        app:layout_constraintTop_toBottomOf="@+id/order_quantity">
 
                     </LinearLayout>
                 </ScrollView>

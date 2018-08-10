@@ -57,19 +57,20 @@ public class AddClientFragment extends Fragment {
     private FButton saveOrder;
     private ImageButton back;
     private ListView orderDetails;
+    private Client client;
     EditText pt[]=null;
     EditText ot[]=null;
     EditText dt[]=null;
 
 
     @Override
-    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+    public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        spinner = (MaterialSpinner)view. findViewById(R.id.spinner);
+        spinner = (MaterialSpinner)view. findViewById(R.id.order_spinner);
         spinner.setItems(getResources().getStringArray(R.array.products));
         parent=(LinearLayout)view.findViewById(R.id.fields1);
-        quantity=(TextInputEditText)view.findViewById(R.id.add_quantity);
+        quantity=(TextInputEditText)view.findViewById(R.id.order_quantity);
         email=(TextInputEditText)view.findViewById(R.id.add_email);
         address=(TextInputEditText)view.findViewById(R.id.order_address);
         cname=(TextInputEditText)view.findViewById(R.id.order_name);
@@ -86,7 +87,6 @@ public class AddClientFragment extends Fragment {
         try {
             userID = user.getUid();
         } catch (Exception e) {
-            Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
         }
         spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
 
@@ -108,20 +108,31 @@ public class AddClientFragment extends Fragment {
                } else {
                    removeAllFields(parent);
                    String q = quantity.getText().toString();
-                   int j = Integer.parseInt(q);
-                    pt = new EditText[j];
-                   for (int a = 0; a < j; a++)
-                       addPriceField(parent, a + 1, pt);
+                   final int j = Integer.parseInt(q);
+                   if(j>100){
+                       Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.max_100),Snackbar.LENGTH_SHORT).show();
+                       return;
+                   }
+                      getActivity().runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              pt = new EditText[j];
+                              for (int a = 0; a < j; a++)
+                                  addPriceField(parent, a + 1, pt);
 
-                   addStatusText(parent);
+                              addStatusText(parent);
 
-                    ot =new EditText[j];
-                   for (int a = 0; a < j; a++)
-                       addStatusField(parent, a + 1, ot);
+                              ot =new EditText[j];
+                              for (int a = 0; a < j; a++)
+                                  addStatusField(parent, a + 1, ot);
 
-                   addNotes(parent);
-                   addInsertButton(parent);
-               }
+                              addNotes(parent);
+                              addInsertButton(parent);
+                          }
+                      });
+
+                        }
+
            }
            @Override
            public void afterTextChanged(Editable editable) {
@@ -132,7 +143,7 @@ public class AddClientFragment extends Fragment {
          @Override
          public void onClick(View view) {
                if(validateClientFields()){
-                 Client client= getClient();
+                   client= getClient();
                  saveClient(client);
                  if(validateFields()){
                      Order order=getOrder();
@@ -252,7 +263,7 @@ public class AddClientFragment extends Fragment {
             @Override
             public void onClick(View view) {
                 if(validateClientFields()){
-                    Client client= getClient();
+                     client= getClient();
                     saveClient(client);
                 }else{
                     Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.client_details_missing),Snackbar.LENGTH_SHORT).show();
@@ -279,7 +290,7 @@ public class AddClientFragment extends Fragment {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
         orders.add(dataSnapshot.getValue(Order.class));
-            OrderListAdapter adapter= new OrderListAdapter(getActivity(),orders);
+            OrderListAdapter adapter= new OrderListAdapter(getActivity(),orders,client);
             orderDetails.setAdapter(adapter);
         }
 
@@ -383,6 +394,13 @@ public class AddClientFragment extends Fragment {
             client.setName(name);
             client.setPhone(phon);
             client.setTime(System.currentTimeMillis());
+            if(!TextUtils.isEmpty(address.getText().toString()))
+             client.setAddress(address.getText().toString());
+            if(!TextUtils.isEmpty(email.getText().toString()))
+               client.setEmail(email.getText().toString());
+            if(!TextUtils.isEmpty(phone.getText().toString()))
+                client.setHomephone(phone.getText().toString());
+
             return client;
 
 

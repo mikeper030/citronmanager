@@ -1,11 +1,13 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -25,6 +27,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.OrderListAdapter;
 import com.ultimatesoftil.citron.models.Client;
@@ -68,23 +71,31 @@ public class ClientDetailFragment extends BaseFragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        auth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
+        FirebaseUser user = auth.getCurrentUser();
+        try {
+            userID = user.getUid();
+        } catch (Exception e) {
+            startActivity(new Intent(getActivity(),EmailLogin.class));
+            getActivity().finish();
+            Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
+        }
 
         if (getArguments().getSerializable("client")!=null) {
             // load client item by using the passed client object.
             client=(Client) getArguments().getSerializable("client");
-        }else {
-            auth = FirebaseAuth.getInstance();
-            mFirebaseDatabase = FirebaseDatabase.getInstance();
-            myRef = mFirebaseDatabase.getReference();
-            FirebaseUser user = auth.getCurrentUser();
 
-            try {
-                userID = user.getUid();
-            } catch (Exception e) {
-                Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
-            }
+        }else {
             client=getFirstClient();
         }
+
+
+
+
+
+
 
         setHasOptionsMenu(true);
     }
@@ -133,6 +144,9 @@ public class ClientDetailFragment extends BaseFragment {
 //        orders.add(dataSnapshot.getValue(Order.class));
 //            adapter=new OrderListAdapter(getActivity(),orders);
 //            orderlist.setAdapter(adapter);
+        Log.d("client",client.getName());
+        Log.d("user",userID);
+
         myRef.child("users").child(userID).child("clients").child(client.getName()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {

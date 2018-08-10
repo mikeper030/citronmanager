@@ -62,4 +62,7 @@
     <string name="orders_notification"><u>הזמנות והתראות</u></string>
     <string name="created">נוצר ב:</string>
     <string name="order_details"><u>פרטי הזמנה</u></string>
+    <string name="order_created">הזמנה נוצרה ב:</string>
+    <string name="notification_at">תאריך איחור ב:</string>
+    <string name="max_100">מקסימום 100 מוצרים!</string>
 </resources>

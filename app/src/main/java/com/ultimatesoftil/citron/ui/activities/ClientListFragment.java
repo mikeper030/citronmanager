@@ -100,10 +100,13 @@ public class ClientListFragment extends ListFragment {
 
         try {
             userID = user.getUid();
+            setUpRecyclerView();
         } catch (Exception e) {
+            startActivity(new Intent(getActivity(),EmailLogin.class));
+            getActivity().finish();
             Snackbar.make(getActivity().findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
         }
-        setUpRecyclerView();
+
     }
 
 

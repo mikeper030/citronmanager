@@ -2,12 +2,46 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="50dp"
-    android:orientation="horizontal" >
+    xmlns:droid="http://schemas.android.com/apk/res-auto"
+    android:orientation="horizontal">
     <android.support.design.widget.TextInputEditText
         android:id="@+id/number_edit_text"
         android:layout_width="0dp"
         android:layout_height="match_parent"
+        android:textColor="@color/white"
+        android:textColorHint="@color/white"
+        android:theme="@style/MyEditTextTheme"
+        android:layout_marginLeft="8dp"
         android:layout_weight="5"
         android:inputType="number"/>
+   <android.support.constraint.ConstraintLayout
+       android:layout_marginBottom="4dp"
+       android:layout_marginTop="4dp"
+       android:layout_width="40dp"
+       android:layout_height="40dp"
+       android:layout_gravity="center|left"
+       android:layout_marginLeft="8dp">
+
+       <ImageButton
+           android:id="@+id/add_img_cr"
+           android:layout_marginBottom="4dp"
+           android:layout_marginTop="4dp"
+           android:layout_width="40dp"
+           android:layout_height="40dp"
+           android:src="@drawable/add_image"
+           android:scaleType="fitCenter"
+           android:background="@android:color/transparent"
+           android:layout_gravity="center|left"
+           android:layout_marginLeft="8dp"/>
+       <ProgressBar
+           android:layout_width="40dp"
+           android:layout_height="40dp"
+           android:id="@+id/prg1"
+           android:layout_marginBottom="4dp"
+           android:layout_marginTop="4dp"
+           android:layout_gravity="center|left"
+           android:layout_marginLeft="8dp"
+           android:visibility="gone"/>
+   </android.support.constraint.ConstraintLayout>
 
 </LinearLayout>

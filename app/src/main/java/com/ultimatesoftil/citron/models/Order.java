@@ -14,7 +14,26 @@ import java.util.TimeZone;
 public class Order implements Serializable{
     //all products must be same per order
     ArrayList<Product> products;
- int quantity;
+    String comment;
+    double total;
+
+    public String getComment() {
+        return comment;
+    }
+
+    public void setComment(String comment) {
+        this.comment = comment;
+    }
+
+    public double getTotal() {
+        return total;
+    }
+
+    public void setTotal(double total) {
+        this.total = total;
+    }
+
+    int quantity;
     public String getDateTimeFormatted() {
         SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"
                 , Locale.getDefault());

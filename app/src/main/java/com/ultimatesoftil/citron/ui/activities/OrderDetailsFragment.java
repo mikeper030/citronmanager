@@ -11,23 +11,31 @@ import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.drawable.GlideDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.jaredrummler.materialspinner.MaterialSpinner;
+
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
@@ -41,7 +49,7 @@ import java.util.ArrayList;
 
 public class OrderDetailsFragment extends Fragment {
     private TextInputEditText name,mobile,phone,email,address,quantity;
-    private MaterialSpinner spinner;
+    private Spinner spinner;
     private Client client;
     private Order order;
     private LinearLayout parent;
@@ -68,8 +76,7 @@ public class OrderDetailsFragment extends Fragment {
         phone = (TextInputEditText) view.findViewById(R.id.order_phone);
         address = (TextInputEditText) view.findViewById(R.id.order_address);
         quantity = (TextInputEditText) view.findViewById(R.id.order_quantity);
-        spinner = (MaterialSpinner) view.findViewById(R.id.order_spinner);
-        spinner.setItems(getResources().getStringArray(R.array.products));
+        spinner = (Spinner) view.findViewById(R.id.order_spinner);
         parent = (LinearLayout) view.findViewById(R.id.fields2);
         back=(ImageButton)view.findViewById(R.id.fragment_orders_back);
         /// /Get Firebase auth instance
@@ -103,11 +110,10 @@ public class OrderDetailsFragment extends Fragment {
 
             order = (Order) bundle.getSerializable("order");
             quantity.setText(String.valueOf(order.getQuantity()));
-            for (int i = 0; i < spinner.getItems().size(); i++) {
-                if (spinner.getItems().get(i).toString().equals(order.getProducts().get(0).getKind())) {
-                    spinner.setSelectedIndex(i);
-                    break;
-                }
+            for (int i = 0; i < 2; i++) {
+                if(order.getProducts().get(0).getKind().equals(spinner.getItemAtPosition(i))){
+                    spinner.setSelection(i);
+               }
             }
 
             spinner.setEnabled(false);
@@ -128,8 +134,8 @@ public class OrderDetailsFragment extends Fragment {
                     for (int a = 0; a < j; a++,k++)
                         addPriceField(parent,a, pt);
 
-                    addStatusText(parent);
-
+                    addStatusText(parent,k);
+                    k++;
                     for (int i = 0; i < j; i++) {
                       //  addStatusField(parent, a + 1, ot);
                      if(order.getProducts().get(i).getDue()!=0)
@@ -158,9 +164,26 @@ public class OrderDetailsFragment extends Fragment {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View rowView = inflater.inflate(R.layout.price_field, null);
         // Add the new row before the add field button.
+         ImageButton image=rowView.findViewById(R.id.add_img_cr);
+        final ProgressBar progressBar=rowView.findViewById(R.id.prg1);
+         if(order.getProducts().get(parentindex).getPicLink()!=null){
+            progressBar.setVisibility(View.VISIBLE);
+             Glide.with(getActivity()).load(order.getProducts().get(parentindex).getPicLink()).placeholder(getResources().getDrawable(R.drawable.add_image)).listener(new RequestListener<String, GlideDrawable>() {
+                 @Override
+                 public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                     return false;
+                 }
+
+                 @Override
+                 public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                     progressBar.setVisibility(View.INVISIBLE);
+                     return false;
+                 }
+             }).into(image);
+         }
         TextInputEditText input=rowView.findViewById(R.id.number_edit_text);
         editTexts[parentindex]=input;
-        input.setText(order.getProducts().get(parentindex).getPrice());
+        input.setText(String.valueOf(order.getProducts().get(parentindex).getPrice()));
         input.setHint(getResources().getString(R.string.price)+" "+parentindex+1);
         parent.addView(rowView, parent.getChildCount() );
     }
@@ -172,11 +195,14 @@ public class OrderDetailsFragment extends Fragment {
 
         final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View rowView = inflater.inflate(R.layout.status_owe, null);
-        final MaterialSpinner spinner=rowView.findViewById(R.id.status_sp2);
+        final Spinner spinner=rowView.findViewById(R.id.status_sp2);
         EditText text=rowView.findViewById(R.id.status_o);
         texts[txt_ind-1]=text;
-        spinner.setItems(getResources().getStringArray(R.array.status));
-        spinner.setSelectedIndex(2);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.status));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setSelection(2);
         if(order.getProducts().get(txt_ind-1).getDue()!=0){
             text.setText(String.valueOf(order.getProducts().get(txt_ind-1).getDue()));
         }
@@ -190,18 +216,14 @@ public class OrderDetailsFragment extends Fragment {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         final View rowView = inflater.inflate(R.layout.status_field, null);
-        final MaterialSpinner spinner=rowView.findViewById(R.id.status_sp1);
+        final Spinner spinner=rowView.findViewById(R.id.status_sp1);
         dt=new EditText[Integer.parseInt(quantity.getText().toString())];
-        spinner.setItems(getResources().getStringArray(R.array.status));
-        spinner.setTag("spinner"+parentindex);
-        for(int i=0;i<spinner.getItems().size();i++) {
-            if (order.getProducts().get(itemindex).getStatus().equals(spinner.getItems().get(0)))
-                spinner.setSelectedIndex(0);
-            if (order.getProducts().get(itemindex).getStatus().equals(spinner.getItems().get(1)))
-                spinner.setSelectedIndex(1);
-            if (order.getProducts().get(itemindex).getStatus().equals(spinner.getItems().get(2)))
-                spinner.setSelectedIndex(2);
-        }
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.status));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+            spinner.setSelection(order.getProducts().get(itemindex).getStatus());
+
 //        spinner.setOnItemSelectedListener(new MaterialSpinner.OnItemSelectedListener<String>() {
 //
 //            @Override public void onItemSelected(MaterialSpinner view, int position, long id, String item) {
@@ -216,16 +238,21 @@ public class OrderDetailsFragment extends Fragment {
 //        });
         parent.addView(rowView, parentindex );
     }
-    private void addStatusText(LinearLayout parent) {
+    private void addStatusText(LinearLayout parent,int parentindex) {
         TextView tv = new TextView(getActivity());
+
         tv.setText(getResources().getString(R.string.order_status) );
-        parent.addView(tv,parent.getChildCount());
+        tv.setHeight(75);
+        tv.setGravity(Gravity.RIGHT | Gravity.CENTER);
+        tv.setTextColor(getResources().getColor(R.color.white));
+        parent.addView(tv,parentindex);
     }
     private void addNotes(LinearLayout parent) {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         final View rowView = inflater.inflate(R.layout.notes_field, null);
-
+       EditText comment=rowView.findViewById(R.id.notes_ord);
+       comment.setText(order.getComment()!=null?order.getComment():"");
         parent.addView(rowView, parent.getChildCount() );
     }
 //    private void addInsertButton(final LinearLayout parent) {
@@ -272,32 +299,34 @@ public class OrderDetailsFragment extends Fragment {
             }
         return val;
     }
-    private Order getOrder(){
-
-        int i=Integer.parseInt(quantity.getText().toString());
-        order.setQuantity(Integer.parseInt(quantity.getText().toString()));
-        ArrayList<Product> products=new ArrayList<>();
-        for(int j=0;j<i;j++){
-            Product product= new Product();
-            product.setKind(spinner.getItems().get(spinner.getSelectedIndex()).toString());
-            product.setPrice(pt[j]!=null?pt[j].getText().toString():null);
-            try {
-                product.setDue(dt[j]!=null?Double.parseDouble(dt[j].getText().toString()):null);
-
-            }catch (Exception E){
-                E.printStackTrace();
-                product.setDue(0);
-
-            }
-            product.setStatus(ot[j]!=null?ot[j].getText().toString():null);
-            products.add(product);
-
-        }
-        order.setTime(System.currentTimeMillis());
-        order.setProducts(products);
-
-        return order;
-    }
+//    private Order getOrder(){
+//
+//        int i=Integer.parseInt(quantity.getText().toString());
+//        order.setQuantity(Integer.parseInt(quantity.getText().toString()));
+//        ArrayList<Product> products=new ArrayList<>();
+//        for(int j=0;j<i;j++){
+//            Product product= new Product();
+//            for (int a=0;a<i;a++){
+//            product.setKind(spinner.getItems().get(spinner.getSelectedIndex()).toString());
+//
+//            product.setPrice(pt[j]!=null?pt[j].getText().toString():null);
+//            try {
+//                product.setDue(dt[j]!=null?Double.parseDouble(dt[j].getText().toString()):null);
+//
+//            }catch (Exception E){
+//                E.printStackTrace();
+//                product.setDue(0);
+//
+//            }
+//            //product.setStatus();
+//            products.add(product);
+//
+//        }
+//        order.setTime(System.currentTimeMillis());
+//        order.setProducts(products);
+//
+//        return order;
+//    }
     private Client getClient() {
 
         String names = name.getText().toString() != null ? name.getText().toString() : "";

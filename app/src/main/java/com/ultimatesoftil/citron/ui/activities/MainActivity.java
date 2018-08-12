@@ -1,6 +1,7 @@
 package com.ultimatesoftil.citron.ui.activities;
 
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.ActionBar;
@@ -65,11 +66,13 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
             if (isTwoPaneLayoutUsed()) {
                 twoPaneMode = true;
                 LogUtil.logD("TEST","TWO POANE TASDFES");
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+
                 enableActiveItemState();
             }
 
             if (savedInstanceState == null && twoPaneMode) {
-
+                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                 setupDetailFragment();
             }
         }
@@ -89,7 +92,7 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
             getFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
         } else {
             // Start the detail activity in single pane mode.
-            Intent detailIntent = new Intent(this, ClientDetailActivity.class);
+            Intent detailIntent = new Intent(MainActivity.this, ClientDetailActivity.class);
             detailIntent.putExtra("client", client);
             Log.d("client",client.getName());
             startActivity(detailIntent);

@@ -1,19 +1,23 @@
 package com.ultimatesoftil.citron.models;
 
+import android.graphics.Bitmap;
+
+import java.io.Serializable;
+
 /**
  * Created by Mike on 06/08/2018.
  */
 
-public class Product {
+public class Product implements Serializable{
     public Product() {
     }
 
-    public String getPrice() {
+    public double getPrice() {
 
         return price;
     }
 
-    public void setPrice(String price) {
+    public void setPrice(double price) {
         this.price = price;
     }
 
@@ -25,11 +29,11 @@ public class Product {
         this.picLink = picLink;
     }
 
-    public String getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
@@ -50,9 +54,9 @@ public class Product {
         this.notification = notification;
     }
 
-    String price;
+    double price;
     String picLink;
-    String status;
+    int status;
 
     public String getKind() {
         return kind;
@@ -62,6 +66,15 @@ public class Product {
         this.kind = kind;
     }
 
+    public Bitmap getRawImage() {
+        return rawImage;
+    }
+
+    public void setRawImage(Bitmap rawImage) {
+        this.rawImage = rawImage;
+    }
+
+    Bitmap rawImage;
     String kind;
     double due;
 }

@@ -64,7 +64,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:background="@color/material_gray"
+            android:background="@color/material_gray1"
             android:text="@string/create_account"
             android:textColor="@android:color/black"
             android:textStyle="bold" />
@@ -86,10 +86,10 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dip"
-            android:background="@drawable/button_border"
+            android:background="@drawable/button_border_black"
             android:text="@string/action_sign_in_short"
             android:textAllCaps="false"
-            android:textColor="@color/material_gray"
+            android:textColor="@color/material_gray1"
             android:textSize="15dp" />
     </LinearLayout>
 

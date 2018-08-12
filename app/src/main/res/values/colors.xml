@@ -4,14 +4,15 @@
     <color name="theme_primary_dark">#1976D2</color>
     <color name="theme_primary_light">#2196F3</color>
     <color name="theme_window_background">#FFF5F5F5</color>
+    <color name="white">#ffffff</color>
     <color name="theme_divider">#B6B6B6</color>
-    <color name="material_gray">#757575</color>
+    <color name="material_gray1">#757575</color>
     <color name="semi_trans">#c0000000</color>
     <color name="primary_text">#212121</color>
     <color name="secondary_text">#727272</color>
     <color name="fbutton_default_color">#3eadeb</color>
     <color name="fbutton_default_shadow_color">#ff3493c8</color>
-
+    <color name="material_gray2">#616161</color>
     <color name="fbutton_color_turquoise">#1abc9c</color>
     <color name="fbutton_color_green_sea">#16a085</color>
     <color name="fbutton_color_emerald">#2ecc71</color>

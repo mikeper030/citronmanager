@@ -2,6 +2,9 @@
     package="com.ultimatesoftil.citron">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.CAMERA"/>
     <application
         android:allowBackup="true"
         android:name=".ui.activities.Application"
@@ -10,8 +13,11 @@
         android:theme="@style/Theme.Main"
         android:supportsRtl="true">
 
-        <activity android:name="com.ultimatesoftil.citron.ui.activities.MainActivity">
+        <activity android:name="com.ultimatesoftil.citron.ui.activities.MainActivity"
+            android:windowSoftInputMode="stateHidden">
+
             <intent-filter>
+
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />

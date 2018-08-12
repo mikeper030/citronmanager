@@ -65,4 +65,10 @@
     <string name="order_created">הזמנה נוצרה ב:</string>
     <string name="notification_at">תאריך איחור ב:</string>
     <string name="max_100">מקסימום 100 מוצרים!</string>
+    <string name="total">סה\"כ</string>
+    <string name="error_cam">שגיאה בצילום אנא נסה שוב</string>
+    <string name="switche">האם ברצונך לצפות בתמונה או לצלם חדש?</string>
+    <string name="pht">צלם</string>
+    <string name="watch">צפה</string>
+    <string name="cheched">נשלח לבדיקה</string>
 </resources>

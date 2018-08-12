@@ -60,7 +60,7 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dip"
-            android:background="@color/material_gray"
+            android:background="@color/material_gray1"
             android:text="@string/login"
             android:textColor="@android:color/black" />
 
@@ -70,10 +70,10 @@
             android:layout_width="fill_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dip"
-            android:background="@drawable/button_border"
+            android:background="@drawable/button_border_black"
             android:text="@string/btn_forgot_password"
             android:textAllCaps="false"
-            android:textColor="@color/material_gray" />
+            android:textColor="@color/material_gray1" />
 
         <!-- Link to Login Screen -->
 

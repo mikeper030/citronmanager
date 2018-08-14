@@ -42,7 +42,7 @@ public class EmailLogin extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
         //Get Firebase auth instance
-        auth = FirebaseAuth.getInstance();
+        auth =FirebaseAuth.getInstance();
         //if User already logged in skip the login
         if (auth.getCurrentUser() != null) {
             startActivity(new Intent(EmailLogin.this, MainActivity.class));

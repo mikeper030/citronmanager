@@ -14,7 +14,10 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import butterknife.Bind;
 
@@ -37,7 +40,6 @@ import com.ultimatesoftil.citron.ui.base.BaseFragment;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Shows the quote detail page.
@@ -58,12 +60,15 @@ public class ClientDetailFragment extends BaseFragment {
     private TextInputEditText name,address,mobile,home,email;
     private FirebaseAuth auth;
     private FirebaseDatabase mFirebaseDatabase;
+    private ImageView def1;
+    private TextView def2;
     private String userID;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRef;
     private ListView orderlist;
     private OrderListAdapter adapter;
     private ArrayList<Order> orders=new ArrayList<>();
+    private Button addOrder;
     @Bind(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbar;
 
@@ -128,6 +133,9 @@ public class ClientDetailFragment extends BaseFragment {
         mobile=(TextInputEditText)view.findViewById(R.id.dtl_mobile);
         home=(TextInputEditText)view.findViewById(R.id.dtl_h_p);
         orderlist=(ListView)view.findViewById(R.id.order_list);
+        addOrder=(Button)view.findViewById(R.id.order_add);
+        def1=(ImageView)view.findViewById(R.id.default_add_order);
+        def2=(TextView)view.findViewById(R.id.textView9);
         if(client!=null) {
             name.setText(client.getName() != null ? client.getName() : "");
             email.setText(client.getEmail() != null ? client.getEmail() : "");
@@ -136,7 +144,17 @@ public class ClientDetailFragment extends BaseFragment {
             home.setText(client.getHomephone() != null ? client.getHomephone() : "");
             setUpOrders();
         }
+        addOrder.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AddClientOrderFragment fragobj = new AddClientOrderFragment();
+                Bundle bundle1=new Bundle();
+                bundle1.putSerializable("client",client);
+                fragobj.setArguments(bundle1);
 
+                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+            }
+        });
 
     }
 
@@ -144,28 +162,69 @@ public class ClientDetailFragment extends BaseFragment {
 //        orders.add(dataSnapshot.getValue(Order.class));
 //            adapter=new OrderListAdapter(getActivity(),orders);
 //            orderlist.setAdapter(adapter);
-        Log.d("client",client.getName());
-        Log.d("user",userID);
+        if(orders.size()==0) {
 
-        myRef.child("users").child(userID).child("clients").child(client.getName()).addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-              client=dataSnapshot.getValue(Client.class);
-                if(client.getOrders()!=null){
-                    HashMap<String,Order> raw=client.getOrders();
-                    orders.addAll(raw.values());
-                    adapter=new OrderListAdapter(getActivity(),orders,client);
-                    orderlist.setAdapter(adapter);
+            Log.d("client", client.getName());
+            Log.d("user", userID);
+
+            myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if (!dataSnapshot.hasChildren()) {
+                        def1.setVisibility(View.VISIBLE);
+                        def2.setVisibility(View.VISIBLE);
+                        def1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AddClientOrderFragment fragobj = new AddClientOrderFragment();
+                                Bundle bundle1=new Bundle();
+                                bundle1.putSerializable("client",client);
+                                fragobj.setArguments(bundle1);
+
+                                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+                            }
+                        });
+                    } else {
+                        def2.setVisibility(View.INVISIBLE);
+                        def1.setVisibility(View.INVISIBLE);
+                    }
                 }
 
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-            }
+                }
+            });
+            myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addChildEventListener(new ChildEventListener() {
+                @Override
+                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                    orders.add(dataSnapshot.getValue(Order.class));
+                    adapter = new OrderListAdapter(getActivity(), orders, client);
+                    orderlist.setAdapter(adapter);
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                }
 
-            }
-        });
+                @Override
+                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                }
+
+                @Override
+                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+        }
     }
 
     private void loadBackdrop() {
@@ -203,7 +262,7 @@ public class ClientDetailFragment extends BaseFragment {
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                client=dataSnapshot.getValue(Client.class);
+                client=dataSnapshot.child("details").getValue(Client.class);
                 name.setText(client.getName() != null ? client.getName() : "");
                 email.setText(client.getEmail() != null ? client.getEmail() : "");
                 address.setText(client.getAddress() != null ? client.getAddress() : "");

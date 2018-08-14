@@ -1,20 +1,33 @@
 package com.ultimatesoftil.citron.adapters;
 
 import android.content.Context;
+import android.support.design.widget.Snackbar;
 import android.support.v7.widget.PopupMenu;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageButton;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.models.Client;
+import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.util.Utils;
 
 import java.util.ArrayList;
 
@@ -25,9 +38,27 @@ import java.util.ArrayList;
 public class NotificationListAdapter extends BaseAdapter {
     private Context context; //context
     private ArrayList<Product> items; //dat
-    public NotificationListAdapter(Context context, ArrayList<Product> items) {
+    private ArrayList<Order> orders;
+    private FirebaseAuth auth;
+    private FirebaseDatabase mFirebaseDatabase;
+    private String userID;
+    private FirebaseAuth.AuthStateListener mAuthListener;
+    private DatabaseReference myRef;
+    private Client client;
+    public NotificationListAdapter(Context context, ArrayList<Product> items,ArrayList<Order>orders,Client client) {
         this.context = context;
         this.items = items;
+        this.orders=orders;
+        this.client=client;
+        auth = FirebaseAuth.getInstance();
+        mFirebaseDatabase = FirebaseDatabase.getInstance();
+        myRef = mFirebaseDatabase.getReference();
+        FirebaseUser user = auth.getCurrentUser();
+        try {
+            userID = user.getUid();
+        } catch (Exception e) {
+
+        }
     }
     @Override
     public int getCount() {
@@ -49,43 +80,82 @@ public class NotificationListAdapter extends BaseAdapter {
         if (convertView == null) {
             convertView = LayoutInflater.from(context).inflate(R.layout.notification_item, container, false);
         }
-
+        String [] products=context.getResources().getStringArray(R.array.products);
         final Product item = (Product) getItem(position);
-//        ((TextView) convertView.findViewById(R.id.list_item_name)).setText(item.getName());
-//        ((TextView) convertView.findViewById(R.id.list_item_phone)).setText(context.getResources().getString(R.string.mobile)+":"+" "+item.getPhone());
-//        ((TextView) convertView.findViewById(R.id.list_item_added)).setText(item.getDateTimeFormatted());
-        ((Switch) convertView.findViewById(R.id.switch1)).setChecked(true);
+        ((TextView) convertView.findViewById(R.id.notif_item_product)).setText(products[Integer.parseInt(item.getKind())]);
+        for(int i=0;i<orders.size();i++){
+            Order order=orders.get(i);
+            for(int j=0;j<order.getProducts().size();j++){
+                if(item.getTime()==order.getProducts().get(j).getTime()){
+                    ((TextView) convertView.findViewById(R.id.notif_item_date)).setText(orders.get(i).getDateTimeFormatted());
 
-        //        ((ImageButton)convertView.findViewById(R.id.client_menu)).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                //Creating the instance of PopupMenu
-//                PopupMenu popup = new PopupMenu(context, view);
-//                //Inflating the Popup using xml file
-//                popup.getMenuInflater().inflate(R.menu.popup_menu, popup.getMenu());
-//
-//                //registering popup with OnMenuItemClickListener
-//                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-//                    public boolean onMenuItemClick(MenuItem item) {
-//                        Toast.makeText(context,"You Clicked : " + item.getTitle(), Toast.LENGTH_SHORT).show();
-//                        return true;
-//                    }
-//                });
-//
-//                popup.show();//showing popup menu
-//            }
-//        });
-////            final ImageView img = (ImageView) convertView.findViewById(R.id.thumbnail);
-//            Glide.with(getActivity()).load(item.photoId).asBitmap().fitCenter().into(new BitmapImageViewTarget(img) {
-//                @Override
-//                protected void setResource(Bitmap resource) {
-//                    RoundedBitmapDrawable circularBitmapDrawable = RoundedBitmapDrawableFactory.create(getActivity().getResources(), resource);
-//                    circularBitmapDrawable.setCircular(true);
-//                    img.setImageDrawable(circularBitmapDrawable);
-//                }
-//            });
+                }
+            }
+        }
+        if(item.getNotification()!=0){
+            ((TextView) convertView.findViewById(R.id.textView12)).setVisibility(View.VISIBLE);
+
+            ((TextView) convertView.findViewById(R.id.notification_item_expire)).setVisibility(View.VISIBLE);
+            ((TextView) convertView.findViewById(R.id.notification_item_expire)).setText(Utils.FormatMillis(item.getNotification()));
+
+        }
+//        ((TextView) convertView.findViewById(R.id.list_item_added)).setText(item.getDateTimeFormatted());
+        Switch switche=(Switch) convertView.findViewById(R.id.switch1);
+        switche.setChecked(item.isNotification_checked());
+        switche.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+               item.setNotification_checked(b);
+               saveUpdate(item);
+            }
+        });
+
 
         return convertView;
+    }
+
+    private void saveUpdate(Product item) {
+      for(int i=0;i<orders.size();i++){
+          Order order=orders.get(i);
+          for(int j=0;j<order.getProducts().size();j++){
+              if(item.getTime()==order.getProducts().get(j).getTime()){
+                 order.getProducts().set(j,item);
+                 saveOrder(order,item.getTime());
+              }
+          }
+      }
+    }
+
+    private void saveOrder(final Order order,long time) {
+        Query query=myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").orderByChild("time").equalTo(order.getTime());
+        query.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.d("snapshot",dataSnapshot.getKey());
+              String ref=  dataSnapshot.getKey();
+              myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").child(ref).setValue(order);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }

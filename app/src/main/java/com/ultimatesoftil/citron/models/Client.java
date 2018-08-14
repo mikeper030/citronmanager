@@ -64,11 +64,11 @@ public class Client implements Serializable{
         this.email = email;
     }
 
-    public HashMap<String,Order>  getOrders() {
+    public ArrayList<Order> getOrders() {
         return orders;
     }
 
-    public void setOrders( HashMap<String,Order> orders) {
+    public void setOrders(ArrayList<Order> orders) {
         this.orders = orders;
     }
 
@@ -86,8 +86,18 @@ public class Client implements Serializable{
     String homephone;
     String email;
     String address;
- long time;
+    boolean notifications_enabled;
+
+    public boolean isNotifications_enabled() {
+        return notifications_enabled;
+    }
+
+    public void setNotifications_enabled(boolean notifications_enabled) {
+        this.notifications_enabled = notifications_enabled;
+    }
+
+    long time;
 //ArrayList<Order> orders;
- HashMap<String,Order> orders;
+ ArrayList<Order> orders;
 
 }

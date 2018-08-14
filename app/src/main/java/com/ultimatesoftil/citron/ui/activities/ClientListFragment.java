@@ -15,10 +15,10 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
-import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -85,7 +85,7 @@ public class ClientListFragment extends ListFragment {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                AddClientFragment fragobj = new AddClientFragment();
+                AddClientOrderFragment fragobj = new AddClientOrderFragment();
                 getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
 
             }
@@ -188,7 +188,13 @@ public class ClientListFragment extends ListFragment {
 
             @Override
             public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                for(int i=0;i<clients.size();i++){
+                    if(clients.get(i).getName().equals(dataSnapshot.child("details").child("name").getValue(String.class))){
+                        clients.remove(i);
+                       adapter= new ClientListAdapter(getActivity(),clients);
+                     setListAdapter(adapter);
+                    }
+                }
             }
 
             @Override
@@ -207,7 +213,7 @@ public class ClientListFragment extends ListFragment {
          try {
 
 
-        Client client=dataSnapshot.getValue(Client.class);
+        Client client=dataSnapshot.child("details").getValue(Client.class);
         for (int i=0;i<clients.size();i++){
             if(clients.get(i).getName().equals(client.getName()))
                 return;

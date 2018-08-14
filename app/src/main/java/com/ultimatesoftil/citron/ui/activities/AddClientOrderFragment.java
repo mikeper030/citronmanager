@@ -37,6 +37,9 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+
+import com.android.datetimepicker.time.RadialPickerLayout;
+
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -57,6 +60,7 @@ import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.mindorks.paracamera.Camera;
+
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.NotificationListAdapter;
 import com.ultimatesoftil.citron.adapters.OrderListAdapter;
@@ -64,18 +68,27 @@ import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.FButton;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.util.Utils;
+import com.android.datetimepicker.date.DatePickerDialog;
+import com.android.datetimepicker.time.RadialPickerLayout;
+import com.android.datetimepicker.time.TimePickerDialog;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.HashMap;
+import java.util.Locale;
 import java.util.UUID;
 
 /**
  * Created by Mike on 02/08/2018.
  */
 
-public class AddClientFragment extends Fragment {
+public class AddClientOrderFragment extends Fragment implements DatePickerDialog.OnDateSetListener, TimePickerDialog.OnTimeSetListener,View.OnClickListener {
 
     private Spinner spinner;
     private LinearLayout parent;
@@ -98,6 +111,9 @@ public class AddClientFragment extends Fragment {
     private String[]links=null;
     private ImageButton[]addimgs=null;
     private EditText cmt=null;
+    private Calendar calendar;
+    private DateFormat dateFormat;
+    private SimpleDateFormat timeFormat;
     private double total=0;
     private int counter=0;
     private Product[]temp;
@@ -107,7 +123,12 @@ public class AddClientFragment extends Fragment {
     private String DownloadUrl;
     private ListView notificationlist;
     private String pushedref;
-    ArrayList<Product> products=new ArrayList<>();
+    private static final String TIME_PATTERN = "HH:mm";
+    private ListView notifications;
+    private ArrayList<Product> notificationProducs=new ArrayList<>();
+    private ArrayList<Order> orders=new ArrayList<>();
+    private TextView date;
+
 
     @Override
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
@@ -124,10 +145,11 @@ public class AddClientFragment extends Fragment {
         mobile=(TextInputEditText)view.findViewById(R.id.order_mobile);
         saveOrder=(FButton)view.findViewById(R.id.FButton);
         back=(ImageButton)view.findViewById(R.id.add_back);
-       // orderDetails=(ListView)view.findViewById(R.id.add_sum_list);
+
         progressBar=(ProgressBar) view.findViewById(R.id.progressBar2);
         progressBar.setVisibility(View.INVISIBLE);
-        notificationlist=(ListView)view.findViewById(R.id.notif_list_create);
+        notifications=(ListView)view.findViewById(R.id.notif_list_create);
+
         /// /Get Firebase auth instance
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -139,6 +161,9 @@ public class AddClientFragment extends Fragment {
             userID = user.getUid();
         } catch (Exception e) {
         }
+        calendar = Calendar.getInstance();
+        dateFormat = DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault());
+        timeFormat = new SimpleDateFormat(TIME_PATTERN, Locale.getDefault());
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.products));
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -230,6 +255,17 @@ public class AddClientFragment extends Fragment {
             getActivity().getSupportFragmentManager().popBackStack();
         }
     });
+    Bundle bundle=getArguments();
+    if(bundle!=null&&bundle.getSerializable("client")!=null){
+        Client client=(Client) bundle.getSerializable("client");
+        cname.setText(client.getName()!=null?client.getName():"");
+        phone.setText(client.getHomephone()!=null?client.getHomephone():"");
+        mobile.setText(client.getPhone()!=null?client.getPhone():"");
+        address.setText(client.getAddress()!=null?client.getAddress():"");
+        email.setText(client.getEmail()!=null?client.getEmail():"");
+        setUpOrderList();
+
+    }
     }
 
 
@@ -340,7 +376,7 @@ public class AddClientFragment extends Fragment {
         spinner.setAdapter(adapter);
         EditText text = rowView.findViewById(R.id.status_o);
         texts[i - 1] = text;
-         spinner.setSelection(2);
+         spinner.setSelection(3);
         //click listener for owe spinner
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -388,7 +424,8 @@ public class AddClientFragment extends Fragment {
 
 
     private void addStatusField (final LinearLayout parent, final int i, final EditText[] editTexts) {
-        LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final LayoutInflater inflater1 = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
         final View rowView = inflater.inflate(R.layout.status_field, null);
         final Spinner spinner=rowView.findViewById(R.id.status_sp1);
@@ -405,19 +442,63 @@ public class AddClientFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
                 String selectedItem = adapterView.getItemAtPosition(position).toString();
-                if(selectedItem.equals(getResources().getString(R.string.owe2))){
-                    int n=Integer.parseInt(quantity.getText().toString());
-                    EditText text=rowView.findViewById(R.id.status_o);
-                    editTexts[i-1]=text;
+                if (selectedItem.equals(getResources().getString(R.string.owe2))) {
+                    int n = Integer.parseInt(quantity.getText().toString());
+                    EditText text = rowView.findViewById(R.id.status_o);
+                    editTexts[i - 1] = text;
 
-                    showOwe(parent,i+n,dt,i);
-                }
-                else
-                    if(selectedItem.equals(getResources().getString(R.string.cheched))){
+                    showOwe(parent, i + n, dt, i);
 
-                     products.add(new Product());
-                        NotificationListAdapter adapter1= new NotificationListAdapter(getContext(),products);
-                        notificationlist.setAdapter(adapter1);
+                } else if (selectedItem.equals("נשלח לבדיקה")) {
+                    AlertDialog.Builder alert = new AlertDialog.Builder(getActivity());
+                    alert.setTitle("בחר זמן להתראה");
+
+                    View view1=inflater1.inflate(R.layout.notification_dailog,null);
+                    // this is set the view from XML inside AlertDialog
+                    alert.setView(view1);
+                    // disallow cancel of AlertDialog on click of back button and outside touch
+                    date=(TextView)view1.findViewById(R.id.date_display);
+                    Button select = (Button) view1.findViewById(R.id.select_custom);
+                    select.setOnClickListener(AddClientOrderFragment.this);
+                    Spinner pre=(Spinner)view1.findViewById(R.id.select_def);
+
+
+
+                    pre.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+                    alert.setCancelable(false);
+
+                    alert.setNegativeButton("ביטול", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+
+                        }
+                    });
+
+                    alert.setPositiveButton("שמור", new DialogInterface.OnClickListener() {
+
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                           if(System.currentTimeMillis()-calendar.getTimeInMillis()>0){
+                               
+                           }
+                        }
+                    });
+                    AlertDialog dialog = alert.create();
+
+                    dialog.show();
+
+
 
                     }
             }
@@ -468,7 +549,6 @@ public class AddClientFragment extends Fragment {
 
                     Order order=getOrder();
                    saveOrder(order);
-                    setUpOrderList();
                 }else{
 
                 }
@@ -486,7 +566,9 @@ public class AddClientFragment extends Fragment {
         myRef.child("users").child(userID).child("clients").child(cname.getText().toString()).child("orders").addChildEventListener(new ChildEventListener() {
         @Override
         public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-        orders.add(dataSnapshot.getValue(Order.class));
+            Order order=dataSnapshot.getValue(Order.class);
+
+            orders.add(order);
             OrderListAdapter adapter= new OrderListAdapter(getActivity(),orders,client);
             orderDetails.setAdapter(adapter);
         }
@@ -514,10 +596,10 @@ public class AddClientFragment extends Fragment {
     }
 
     private void saveClient(Client client) {
-    myRef.child("users").child(userID).child("clients").child(client.getName()).setValue(client, new DatabaseReference.CompletionListener() {
+    myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client, new DatabaseReference.CompletionListener() {
         @Override
         public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-
+        progressBar.setVisibility(View.INVISIBLE);
         }
     });
     }
@@ -530,33 +612,81 @@ public class AddClientFragment extends Fragment {
     return true;
     }
 
-        public void saveOrder(Order order){
+        public void saveOrder(final Order order){
         progressBar.setVisibility(View.VISIBLE);
-        myRef.child("users").child(userID).child("clients").child(cname.getText().toString()).child("orders").push().setValue(order, new DatabaseReference.CompletionListener() {
-            @Override
-            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
-                pushedref = databaseReference.getKey();
-                if (Integer.parseInt(quantity.getText().toString()) > 0) {
-                    for (int j = 0; j < 1; j++) {
-                        int[] def= new int[1];
-                        def[0]=0;
-                        if (temp != null && temp[j].getRawImage() != null) {
-                            try {
-                                File img = saveBitmapToImg(temp[0].getRawImage(), String.valueOf(System.currentTimeMillis()));
-                                uploadFile(Uri.fromFile(img), pushedref, def);
-                                //product.setPicLink(imglink);
-                            } catch (Exception e) {
-                                e.printStackTrace();
+//            myRef.child("users").child(userID).child("clients").child(client.getName()).addListenerForSingleValueEvent(new ValueEventListener() {
+//                @Override
+//                public void onDataChange(DataSnapshot dataSnapshot) {
+//                   Client client= dataSnapshot.getValue(Client.class);
+//                   Log.d("val",dataSnapshot.getValue().toString());
+//                   // client.getOrders()!=null&&client.getOrders().size()>0
+//                    if (client.getOrders()!=null&&client.getOrders().size()>0) {
+//                        Log.d("val",String.valueOf(client.getOrders().size()));
+//                        client.getOrders().add(order);
+//                        //client.setOrders(raw);
+                        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").push().setValue(order, new DatabaseReference.CompletionListener() {
+                            @Override
+                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                pushedref = databaseReference.getKey();
+                                if (Integer.parseInt(quantity.getText().toString()) > 0) {
+                                    for (int j = 0; j < 1; j++) {
+                                        int[] def = new int[1];
+                                        def[0] = 0;
+                                        if (temp != null && temp[j] != null && temp[j].getRawImage() != null) {
+                                            try {
+                                                File img = saveBitmapToImg(temp[0].getRawImage(), String.valueOf(System.currentTimeMillis()));
+                                                uploadFile(Uri.fromFile(img), pushedref, def);
+                                                //product.setPicLink(imglink);
+                                            } catch (Exception e) {
+                                                e.printStackTrace();
+                                                 }
+                                      }
+                                  }
+                                } else
+                                    progressBar.setVisibility(View.INVISIBLE);
                             }
-                        }
-                    }
-                }
-            }
-        });
+                        });
+//                    }else {
+//                       Log.d("DATASNAPHOT","null");
+//                        ArrayList<Order> orders= new ArrayList<>();
+//                        orders.add(order);
+//                        client.setOrders(orders);
+//                        myRef.child("users").child(userID).child("clients").child(cname.getText().toString()).setValue(client, new DatabaseReference.CompletionListener() {
+//                            @Override
+//                            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+//                                pushedref = databaseReference.getKey();
+//                                if (Integer.parseInt(quantity.getText().toString()) > 0) {
+//                                    for (int j = 0; j < 1; j++) {
+//                                        int[] def = new int[1];
+//                                        def[0] = 0;
+//                                        if (temp != null && temp[j] != null && temp[j].getRawImage() != null) {
+//                                            try {
+//                                                File img = saveBitmapToImg(temp[0].getRawImage(), String.valueOf(System.currentTimeMillis()));
+//                                                uploadFile(Uri.fromFile(img), pushedref, def);
+//                                                //product.setPicLink(imglink);
+//                                            } catch (Exception e) {
+//                                                e.printStackTrace();
+//                                            }
+//                                        }
+//                                    }
+//                                } else
+//                                    progressBar.setVisibility(View.INVISIBLE);
+//                            }
+//                        });
+//                  }
+//
+//
+//
+//
+//                }
+//
+//                @Override
+//                public void onCancelled(DatabaseError databaseError) {
+//
+//                }
+//            });
+        }
 
-
-
-    }
 
 
 
@@ -573,6 +703,7 @@ public class AddClientFragment extends Fragment {
     }
   private Order getOrder() {
       Order order= new Order();
+      long time=System.currentTimeMillis();
       int i=Integer.parseInt(quantity.getText().toString());
       order.setQuantity(Integer.parseInt(quantity.getText().toString()));
       ArrayList<Product> products=new ArrayList<>();
@@ -580,7 +711,7 @@ public class AddClientFragment extends Fragment {
           Product product= new Product();
           product.setKind(String.valueOf(spinner.getSelectedItemPosition()));
 
-
+          product.setTime(System.currentTimeMillis());
           product.setPrice(pt[j]!=null?Double.parseDouble(pt[j].getText().toString()):null);
           try {
               product.setDue(dt[j]!=null?Double.parseDouble(dt[j].getText().toString()):null);
@@ -599,7 +730,7 @@ public class AddClientFragment extends Fragment {
       }
       order.setTotal(total);
       order.setComment(cmt.getText().toString()==null?"":cmt.getText().toString());
-      order.setTime(System.currentTimeMillis());
+      order.setTime(time);
       order.setProducts(products);
       return order;
   }
@@ -701,6 +832,7 @@ public class AddClientFragment extends Fragment {
                                            try {
                                                 File img = saveBitmapToImg(temp[index[0]].getRawImage(), String.valueOf(System.currentTimeMillis()));
                                                 Uri uri= Uri.fromFile(img);
+                                                progressBar.setVisibility(View.INVISIBLE);
                                                 uploadFile(uri,pushedref,index);
                                             } catch (Exception e) {
                                                 e.printStackTrace();
@@ -758,5 +890,24 @@ public class AddClientFragment extends Fragment {
         fo.close();
         return f;
 
+    }
+    @Override
+    public void onDateSet(DatePickerDialog dialog, int year, int monthOfYear, int dayOfMonth) {
+        calendar.set(year, monthOfYear, dayOfMonth);
+        TimePickerDialog.newInstance(this, calendar.get(Calendar.HOUR_OF_DAY), calendar.get(Calendar.MINUTE), true).show(getActivity().getFragmentManager(), "timePicker");
+    }
+
+    @Override
+    public void onTimeSet(RadialPickerLayout view, int hourOfDay, int minute) {
+        calendar.set(Calendar.HOUR_OF_DAY, hourOfDay);
+        calendar.set(Calendar.MINUTE, minute);
+        date.setText(Utils.FormatCalendar(calendar));
+    }
+
+    @Override
+    public void onClick(View view) {
+        if(view.getId()==R.id.select_custom){
+            DatePickerDialog.newInstance(this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show(getActivity().getFragmentManager(), "datePicker");
+        }
     }
 }

@@ -77,4 +77,24 @@ public class Product implements Serializable{
     Bitmap rawImage;
     String kind;
     double due;
+
+    public boolean isNotification_checked() {
+        return notification_checked;
+    }
+
+    public void setNotification_checked(boolean notification_checked) {
+        this.notification_checked = notification_checked;
+    }
+
+    boolean notification_checked=true;
+
+    public long getTime() {
+        return time;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
+    long time;
 }

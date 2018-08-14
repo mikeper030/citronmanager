@@ -17,12 +17,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.Spinner;
+import android.widget.Switch;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
@@ -33,10 +35,15 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import com.google.firebase.database.ValueEventListener;
 import com.ultimatesoftil.citron.R;
+import com.ultimatesoftil.citron.adapters.NotificationListAdapter;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
@@ -61,6 +68,11 @@ public class OrderDetailsFragment extends Fragment {
     private String userID;
     private ImageButton back;
     private DatabaseReference myRef;
+    private Switch notificationsEnabled;
+    private ListView notifications;
+    private ArrayList<Product> notificationProducs=new ArrayList<>();
+    private ArrayList<Order> orders=new ArrayList<>();
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -79,6 +91,8 @@ public class OrderDetailsFragment extends Fragment {
         spinner = (Spinner) view.findViewById(R.id.order_spinner);
         parent = (LinearLayout) view.findViewById(R.id.fields2);
         back=(ImageButton)view.findViewById(R.id.fragment_orders_back);
+        notifications=(ListView)view.findViewById(R.id.notif_list);
+        notificationsEnabled=(Switch)view.findViewById(R.id.notif_switch);
         /// /Get Firebase auth instance
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -96,7 +110,7 @@ public class OrderDetailsFragment extends Fragment {
                 getActivity().getSupportFragmentManager().popBackStack();
             }
         });
-        Bundle bundle = getArguments();
+        final Bundle bundle = getArguments();
         if (bundle != null && bundle.getSerializable("client") != null) {
             client = (Client) bundle.getSerializable("client");
             name.setText(client.getName() != null ? client.getName() : "");
@@ -104,6 +118,15 @@ public class OrderDetailsFragment extends Fragment {
             mobile.setText(client.getPhone() != null ? client.getPhone() : "");
             phone.setText(client.getHomephone() != null ? client.getHomephone() : "");
             address.setText(client.getAddress() != null ? client.getAddress() : "");
+            setUpNotificationsList();
+            notificationsEnabled.setChecked(client.isNotifications_enabled());
+            notificationsEnabled.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    client.setNotifications_enabled(b);
+                    saveClient(client);
+                }
+            });
 
         }
         if (bundle != null && bundle.getSerializable("order") != null) {
@@ -154,7 +177,10 @@ public class OrderDetailsFragment extends Fragment {
         // setUpScrollView(quantity);
          quantity.setEnabled(false);
 
+
     }
+
+
 
 
 //need to implement status and comment injection
@@ -345,8 +371,40 @@ public class OrderDetailsFragment extends Fragment {
 
 
     }
+    private void setUpNotificationsList() {
+        final int[] count = {0};
+
+
+        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+               for(DataSnapshot dataSnapshot1:dataSnapshot.getChildren()) {
+                   Order order = dataSnapshot1.getValue(Order.class);
+                   orders.add(order);
+                   count[0]++;
+               }
+               if(count[0]==dataSnapshot.getChildrenCount()) {
+                   for (int i = 0; i < orders.size(); i++) {
+                       for (int j = 0; j < orders.get(i).getProducts().size(); j++) {
+                           if (orders.get(i).getProducts().get(j).getStatus() == 0) {
+                               notificationProducs.add(orders.get(i).getProducts().get(j));
+                           }
+                       }
+                       NotificationListAdapter adapter = new NotificationListAdapter(getActivity(), notificationProducs,orders,client);
+                       notifications.setAdapter(adapter);
+
+                   }
+               }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
     private void saveClient(Client client) {
-        myRef.child("users").child(userID).child("clients").child(client.getName()).setValue(client).addOnCompleteListener(new OnCompleteListener<Void>() {
+        myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
 

@@ -89,7 +89,7 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
         if (twoPaneMode) {
             // Show the quote detail information by replacing the DetailFragment via transaction.
             ClientDetailFragment fragment = ClientDetailFragment.newInstance(client);
-            getFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
+           getSupportFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
         } else {
             // Start the detail activity in single pane mode.
             Intent detailIntent = new Intent(MainActivity.this, ClientDetailActivity.class);
@@ -108,7 +108,7 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
     private void setupDetailFragment() {
 
         ClientDetailFragment fragment =  ClientDetailFragment.newInstance(null);
-        getFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
+       getSupportFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
     }
 
 

@@ -1,28 +1,22 @@
 package com.ultimatesoftil.citron.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
 import android.widget.BaseAdapter;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
-import com.ultimatesoftil.citron.ui.activities.AddClientFragment;
 import com.ultimatesoftil.citron.ui.activities.OrderDetailsFragment;
 
-import android.view.ViewGroup;
 import android.view.ViewGroup.LayoutParams;
 import java.util.ArrayList;
 

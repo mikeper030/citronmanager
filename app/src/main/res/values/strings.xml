@@ -9,7 +9,13 @@
     <string name="samples_subhead">Hello Subhead</string>
     <string name="samples_hint_username">Username</string>
     <string name="samples_hint_email">E-Mail</string>
+    <string-array name="dates">
+        <item>יום</item>
+        <item>יומיים</item>
+        <item>שלושה</item>
+    </string-array>
     <string-array name="status">
+        <item>לא נבחר</item>
         <item>נשלח לבדיקה</item>
         <item>שולם</item>
         <item>חייב</item>
@@ -71,4 +77,10 @@
     <string name="pht">צלם</string>
     <string name="watch">צפה</string>
     <string name="cheched">נשלח לבדיקה</string>
+    <string name="delete">מחק</string>
+    <string name="export_pdf">ייצא נתונים לPDF</string>
+    <string name="sure_delete">האם אתה בטוח שברצונך למחוק? זה לא ניתן לשחזור!</string>
+    <string name="deleted">נמחק</string>
+    <string name="default_order">לא נמצאו הזמנות לחץ + ליצירה</string>
+    <string name="select">מותאם אישית</string>
 </resources>

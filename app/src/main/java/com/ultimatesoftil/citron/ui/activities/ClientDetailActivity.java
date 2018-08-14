@@ -24,7 +24,7 @@ public class ClientDetailActivity extends BaseActivity {
         }
         Client client=(Client)getIntent().getSerializableExtra("client");
         ClientDetailFragment fragment =  ClientDetailFragment.newInstance(client);
-        getFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
+        getSupportFragmentManager().beginTransaction().replace(R.id.article_detail_container, fragment).commit();
     }
 
     @Override

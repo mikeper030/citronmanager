@@ -1,11 +1,14 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.app.SearchManager;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
+import android.support.v7.widget.SearchView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -15,9 +18,13 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CompoundButton;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import butterknife.Bind;
 
@@ -32,9 +39,12 @@ import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
+import com.ultimatesoftil.citron.adapters.ClientListAdapter;
+import com.ultimatesoftil.citron.adapters.NotificationListAdapter;
 import com.ultimatesoftil.citron.adapters.OrderListAdapter;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
+import com.ultimatesoftil.citron.models.Product;
 import com.ultimatesoftil.citron.ui.base.BaseActivity;
 import com.ultimatesoftil.citron.ui.base.BaseFragment;
 
@@ -60,8 +70,9 @@ public class ClientDetailFragment extends BaseFragment {
     private TextInputEditText name,address,mobile,home,email;
     private FirebaseAuth auth;
     private FirebaseDatabase mFirebaseDatabase;
+    private ImageView defff1;
     private ImageView def1;
-    private TextView def2;
+    private TextView def2,defff2;
     private String userID;
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRef;
@@ -69,6 +80,9 @@ public class ClientDetailFragment extends BaseFragment {
     private OrderListAdapter adapter;
     private ArrayList<Order> orders=new ArrayList<>();
     private Button addOrder;
+    private ListView notifications;
+    private Switch aswitch;
+    private ArrayList<Product> notificationProducs= new ArrayList<>();
     @Bind(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbar;
 
@@ -136,13 +150,35 @@ public class ClientDetailFragment extends BaseFragment {
         addOrder=(Button)view.findViewById(R.id.order_add);
         def1=(ImageView)view.findViewById(R.id.default_add_order);
         def2=(TextView)view.findViewById(R.id.textView9);
+        notifications=(ListView)view.findViewById(R.id.details_notification_list);
+        defff1=(ImageView) view.findViewById(R.id.deff1);
+        defff2=(TextView)view.findViewById(R.id.deff2);
+        aswitch=(Switch)view.findViewById(R.id.switch2);
         if(client!=null) {
             name.setText(client.getName() != null ? client.getName() : "");
             email.setText(client.getEmail() != null ? client.getEmail() : "");
             address.setText(client.getAddress() != null ? client.getAddress() : "");
             mobile.setText(client.getPhone() != null ? client.getPhone() : "");
             home.setText(client.getHomephone() != null ? client.getHomephone() : "");
+            aswitch.setChecked(client.isNotifications_enabled());
+            aswitch.setText(client.isNotifications_enabled()? "פעיל":"כבוי");
+            aswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                    if(b) {
+                        compoundButton.setText("פעיל");
+                        client.setNotifications_enabled(true);
+                        myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").child("notifications_enabled").setValue(true);
+                    }else {
+                        compoundButton.setText("כבוי");
+                        client.setNotifications_enabled(false);
+                        myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").child("notifications_enabled").setValue(false);
+
+                    }
+                    }
+            });
             setUpOrders();
+            setUpNotifications();
         }
         addOrder.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -155,6 +191,58 @@ public class ClientDetailFragment extends BaseFragment {
                 getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
             }
         });
+        def1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AddClientOrderFragment fragobj = new AddClientOrderFragment();
+                Bundle bundle1=new Bundle();
+                bundle1.putSerializable("client",client);
+                fragobj.setArguments(bundle1);
+                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+            }
+        });
+    }
+
+    private void setUpNotifications() {
+        final int[] count = {0};
+
+      final ArrayList<Order>orders=new ArrayList<>();
+        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                if (dataSnapshot.hasChildren()) {
+                    for (DataSnapshot dataSnapshot1 : dataSnapshot.getChildren()) {
+                        Order order = dataSnapshot1.getValue(Order.class);
+                        orders.add(order);
+                        count[0]++;
+                    }
+                    if (count[0] == dataSnapshot.getChildrenCount()) {
+                        for (int i = 0; i < orders.size(); i++) {
+                            for (int j = 0; j < orders.get(i).getProducts().size(); j++) {
+                                if (orders.get(i).getProducts().get(j).getStatus() == 1) {
+                                    notificationProducs.add(orders.get(i).getProducts().get(j));
+                                }
+                            }
+                            NotificationListAdapter adapter = new NotificationListAdapter(getActivity(), notificationProducs, orders, client,false);
+                            notifications.setAdapter(adapter);
+
+                        }
+                        defff1.setVisibility(View.INVISIBLE);
+                        defff2.setVisibility(View.INVISIBLE);
+                        Log.d("notifications  display",String.valueOf(notificationProducs.size()));
+                    }
+
+                } else {
+                    defff1.setVisibility(View.VISIBLE);
+                    defff2.setVisibility(View.VISIBLE);
+                }
+
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
     }
 
@@ -162,7 +250,7 @@ public class ClientDetailFragment extends BaseFragment {
 //        orders.add(dataSnapshot.getValue(Order.class));
 //            adapter=new OrderListAdapter(getActivity(),orders);
 //            orderlist.setAdapter(adapter);
-        if(orders.size()==0) {
+
 
             Log.d("client", client.getName());
             Log.d("user", userID);
@@ -184,9 +272,11 @@ public class ClientDetailFragment extends BaseFragment {
                                 getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
                             }
                         });
+
                     } else {
                         def2.setVisibility(View.INVISIBLE);
                         def1.setVisibility(View.INVISIBLE);
+
                     }
                 }
 
@@ -198,10 +288,27 @@ public class ClientDetailFragment extends BaseFragment {
             myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addChildEventListener(new ChildEventListener() {
                 @Override
                 public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    orders.add(dataSnapshot.getValue(Order.class));
-                    adapter = new OrderListAdapter(getActivity(), orders, client);
-                    orderlist.setAdapter(adapter);
+                    Log.d("dara",String.valueOf(dataSnapshot.child("time").getValue(Long.class)));
+                    getUpdates(dataSnapshot);
 
+                    if(orders.size()==0){
+                        def1.setVisibility(View.VISIBLE);
+                        def2.setVisibility(View.VISIBLE);
+                        def1.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                AddClientOrderFragment fragobj = new AddClientOrderFragment();
+                                Bundle bundle1=new Bundle();
+                                bundle1.putSerializable("client",client);
+                                fragobj.setArguments(bundle1);
+
+                                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+                            }
+                        });
+                    }else{
+                        def1.setVisibility(View.INVISIBLE);
+                        def2.setVisibility(View.INVISIBLE);
+                    }
                 }
 
                 @Override
@@ -211,7 +318,20 @@ public class ClientDetailFragment extends BaseFragment {
 
                 @Override
                 public void onChildRemoved(DataSnapshot dataSnapshot) {
-
+                    for(int i=0;i<orders.size();i++){
+                        if(orders.get(i).getTime()==(dataSnapshot.child("time").getValue(Long.class))){
+                            orders.remove(i);
+                            adapter= new OrderListAdapter(getActivity(),orders,client);
+                            orderlist.setAdapter(adapter);
+                            if(orders.size()==0){
+                                def1.setVisibility(View.VISIBLE);
+                                def2.setVisibility(View.VISIBLE);
+                            }else{
+                                def1.setVisibility(View.INVISIBLE);
+                                def2.setVisibility(View.INVISIBLE);
+                            }
+                        }
+                    }
                 }
 
                 @Override
@@ -225,27 +345,27 @@ public class ClientDetailFragment extends BaseFragment {
                 }
             });
         }
+
+    private void getUpdates(DataSnapshot dataSnapshot) {
+       Order order=dataSnapshot.getValue(Order.class);
+        for (int i=0;i<orders.size();i++){
+            if(orders.get(i).getTime()==order.getTime())
+                return;
+
+        }
+        Log.d("size44",String.valueOf(orders.size()));
+        orders.add(dataSnapshot.getValue(Order.class));
+
+        adapter = new OrderListAdapter(getActivity(),orders, client);
+        orderlist.setAdapter(adapter);
     }
+
 
     private void loadBackdrop() {
     //    Glide.with(this).load(dummyItem.photoId).centerCrop().into(backdropImg);
     }
 
-    @Override
-    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.sample_actions, menu);
-        super.onCreateOptionsMenu(menu, inflater);
-    }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        switch (item.getItemId()) {
-            case R.id.action_settings:
-                // your logic
-                return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
 
     public static ClientDetailFragment newInstance(Client client) {
         ClientDetailFragment fragment = new ClientDetailFragment();
@@ -269,6 +389,24 @@ public class ClientDetailFragment extends BaseFragment {
                 mobile.setText(client.getPhone() != null ? client.getPhone() : "");
                 home.setText(client.getHomephone() != null ? client.getHomephone() : "");
                 setUpOrders();
+                setUpNotifications();
+                aswitch.setChecked(client.isNotifications_enabled());
+                aswitch.setText(client.isNotifications_enabled()? "פעיל":"כבוי");
+                aswitch.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                    @Override
+                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                        if(b) {
+                            compoundButton.setText("פעיל");
+                            client.setNotifications_enabled(true);
+                            myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").child("notifications_enabled").setValue(true);
+                        }else {
+                            compoundButton.setText("כבוי");
+                            client.setNotifications_enabled(false);
+                            myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").child("notifications_enabled").setValue(false);
+
+                        }
+                    }
+                });
             }
 
             @Override

@@ -1,8 +1,10 @@
 package com.ultimatesoftil.citron.models;
 
+import android.app.AlarmManager;
 import android.graphics.Bitmap;
 
 import java.io.Serializable;
+import java.util.Calendar;
 
 /**
  * Created by Mike on 06/08/2018.
@@ -46,12 +48,13 @@ public class Product implements Serializable{
     }
     long notification;
 
-    public long getNotification() {
+    public  long getNotification() {
         return notification;
     }
 
     public void setNotification(long notification) {
         this.notification = notification;
+
     }
 
     double price;

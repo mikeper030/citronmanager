@@ -45,11 +45,13 @@ public class NotificationListAdapter extends BaseAdapter {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRef;
     private Client client;
-    public NotificationListAdapter(Context context, ArrayList<Product> items,ArrayList<Order>orders,Client client) {
+    private boolean is_white;
+    public NotificationListAdapter(Context context, ArrayList<Product> items,ArrayList<Order>orders,Client client,boolean is_white) {
         this.context = context;
         this.items = items;
         this.orders=orders;
         this.client=client;
+        this.is_white=is_white;
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         myRef = mFirebaseDatabase.getReference();
@@ -78,7 +80,10 @@ public class NotificationListAdapter extends BaseAdapter {
     @Override
     public View getView(int position, View convertView, ViewGroup container) {
         if (convertView == null) {
+           if(is_white)
             convertView = LayoutInflater.from(context).inflate(R.layout.notification_item, container, false);
+            else
+               convertView = LayoutInflater.from(context).inflate(R.layout.notification_item2, container, false);
         }
         String [] products=context.getResources().getStringArray(R.array.products);
         final Product item = (Product) getItem(position);
@@ -87,7 +92,7 @@ public class NotificationListAdapter extends BaseAdapter {
             Order order=orders.get(i);
             for(int j=0;j<order.getProducts().size();j++){
                 if(item.getTime()==order.getProducts().get(j).getTime()){
-                    ((TextView) convertView.findViewById(R.id.notif_item_date)).setText(orders.get(i).getDateTimeFormatted());
+                    ((TextView) convertView.findViewById(R.id.notif_item_date)).setText(Utils.FormatMillis(orders.get(i).getTime()));
 
                 }
             }

@@ -3,18 +3,30 @@ package com.ultimatesoftil.citron.ui.activities;
 import android.annotation.TargetApi;
 import android.app.Activity;
 
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ListFragment;
+import android.support.v4.view.ViewPager;
+import android.support.v7.widget.SearchView;
+import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ListView;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -26,10 +38,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.itextpdf.text.pdf.PdfPCell;
 import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.ClientListAdapter;
 import com.ultimatesoftil.citron.models.Client;
+import com.ultimatesoftil.citron.models.Product;
 
 /**
  * Shows a list of all available quotes.
@@ -46,6 +60,8 @@ public class ClientListFragment extends ListFragment {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRef;
     private ClientListAdapter adapter;
+    private TextView textView;
+    private ProgressBar progressBar;
     /**
      * A callback interface. Called whenever a item has been selected.
      */
@@ -82,6 +98,12 @@ public class ClientListFragment extends ListFragment {
     public void onViewCreated(View view, Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         fab=(FloatingActionButton)view.findViewById(R.id.fab);
+        textView= (TextView) view.findViewById(R.id.main_def);
+        textView.setVisibility(View.VISIBLE);
+        progressBar=(ProgressBar)view.findViewById(R.id.prg3);
+        setTimer(progressBar);
+        textView.setText(R.string.no_items);
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -109,7 +131,83 @@ public class ClientListFragment extends ListFragment {
 
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.sample_actions, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+        MenuItem searchItem = menu.findItem(R.id.action_search);
 
+        SearchManager searchManager = (SearchManager)getActivity().getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView = null;
+        if (searchItem != null) {
+            searchView = (SearchView) searchItem.getActionView();
+            searchView.setQueryHint("שם לקוח או מספר נייד");
+            searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+                @Override
+                public boolean onQueryTextSubmit(String query) {
+
+                    return false;
+                }
+
+                @Override
+                public boolean onQueryTextChange(String newText) {
+                    newText = newText.toLowerCase();
+                    ArrayList<Client> newList = new ArrayList<>();
+                    if (clients != null&&clients.size()>0) {
+                        for (Client client : clients) {
+                            if (client.getName().toLowerCase().contains(newText.toLowerCase()) || client.getPhone().contains(newText) ) {
+                                newList.add(client);
+                            }
+                        }
+
+                        adapter = new ClientListAdapter( getActivity(), newList);
+                        setListAdapter(adapter);
+                        adapter.setFilter(newList, newText);
+                        if (newList.size() == 0) {
+                           // nit.setVisibility(View.VISIBLE);
+                            Log.d("defff", "visible");
+                        } else {
+                           // nit.setVisibility(View.INVISIBLE);
+                            Log.d("defff", "invisible");
+                        }
+//                        String[] suggestions = new String[newList.size()];
+//
+//                        for (int i = 0; i < newList.size(); i++)
+//                            suggestions[i] = newList.get(i).getNotetitle();
+
+                        //populateAdapter(newText, suggestions);
+                    }
+                    return true;
+
+                }
+
+            });
+        }
+        if (searchView != null) {
+            searchView.setSearchableInfo(searchManager.getSearchableInfo(getActivity().getComponentName()));
+        }
+
+
+    }
+    private void setTimer(final ProgressBar progressBar){
+        new Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                progressBar.setVisibility(View.INVISIBLE);
+
+            }
+        }, 3000);
+    }
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_settings:
+                // your logic
+                return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public void onListItemClick(ListView l, View v, int position, long id) {
@@ -179,6 +277,8 @@ public class ClientListFragment extends ListFragment {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 getUpdates(dataSnapshot);
+                textView.setVisibility(View.INVISIBLE);
+                progressBar.setVisibility(View.INVISIBLE);
             }
 
             @Override
@@ -194,6 +294,12 @@ public class ClientListFragment extends ListFragment {
                        adapter= new ClientListAdapter(getActivity(),clients);
                      setListAdapter(adapter);
                     }
+                }if(clients.size()==0){
+                    Log.d("EMPTY","list");
+                    textView.setVisibility(View.VISIBLE);
+                    progressBar.setVisibility(View.INVISIBLE);
+                    textView.setText(R.string.no_items);
+
                 }
             }
 
@@ -220,10 +326,12 @@ public class ClientListFragment extends ListFragment {
 
         }
         clients.add(client);
-        setListAdapter(new ClientListAdapter(getActivity(),clients));
+        adapter= new ClientListAdapter(getActivity(),clients);
+        setListAdapter(adapter);
     }catch (Exception e){
          clients.clear();
-         setListAdapter(new ClientListAdapter(getActivity(),clients));
+             adapter= new ClientListAdapter(getActivity(),clients);
+         setListAdapter(adapter);
          }
     }
 }

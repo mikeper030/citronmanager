@@ -86,7 +86,7 @@ public class Client implements Serializable{
     String homephone;
     String email;
     String address;
-    boolean notifications_enabled;
+    boolean notifications_enabled=true;
 
     public boolean isNotifications_enabled() {
         return notifications_enabled;

@@ -386,11 +386,11 @@ public class OrderDetailsFragment extends Fragment {
                if(count[0]==dataSnapshot.getChildrenCount()) {
                    for (int i = 0; i < orders.size(); i++) {
                        for (int j = 0; j < orders.get(i).getProducts().size(); j++) {
-                           if (orders.get(i).getProducts().get(j).getStatus() == 0) {
+                           if (orders.get(i).getProducts().get(j).getStatus() == 1) {
                                notificationProducs.add(orders.get(i).getProducts().get(j));
                            }
                        }
-                       NotificationListAdapter adapter = new NotificationListAdapter(getActivity(), notificationProducs,orders,client);
+                       NotificationListAdapter adapter = new NotificationListAdapter(getActivity(), notificationProducs,orders,client,true);
                        notifications.setAdapter(adapter);
 
                    }

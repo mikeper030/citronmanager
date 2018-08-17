@@ -179,27 +179,14 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginEnd="8dp"
-                        android:background="@color/theme_primary_light"
-                        android:textColor="@color/white"
                         android:layout_marginTop="8dp"
+                        android:background="@color/theme_primary_light"
                         android:drawableLeft="@android:drawable/ic_menu_add"
                         android:text="@string/neww"
+                        android:textColor="@color/white"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <ImageView
-                        android:id="@+id/default_add_order"
-                        android:layout_width="85dp"
-                        android:layout_height="85dp"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_marginStart="8dp"
-                        android:src="@drawable/add_cart"
-                        android:visibility="gone"
-                        app:layout_constraintBottom_toTopOf="@+id/textView9"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="0.5"
-                        app:layout_constraintStart_toStartOf="parent" />
 
                     <TextView
                         android:id="@+id/textView9"
@@ -214,6 +201,7 @@
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.499"
                         app:layout_constraintStart_toStartOf="parent" />
+
                     <ListView
                         android:id="@+id/order_list"
                         android:layout_width="match_parent"
@@ -229,6 +217,21 @@
                         app:layout_constraintTop_toTopOf="parent">
 
                     </ListView>
+
+                    <ImageView
+                        android:id="@+id/default_add_order"
+                        android:layout_width="85dp"
+                        android:layout_height="85dp"
+                        android:clickable="true"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:src="@drawable/add_cart"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toTopOf="@+id/textView9"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent" />
                 </android.support.constraint.ConstraintLayout>
             </android.support.v7.widget.CardView>
 
@@ -254,6 +257,57 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
+                    <ListView
+                        android:id="@+id/details_notification_list"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:layout_marginBottom="16dp"
+                        android:layout_marginLeft="16dp"
+                        android:layout_marginRight="16dp"
+                        android:layout_marginTop="65dp"
+                        tools:layout_editor_absoluteX="8dp"
+                        tools:layout_editor_absoluteY="59dp" />
+
+                    <TextView
+                        android:id="@+id/deff2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:text="@string/notif"
+                        android:textSize="18sp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintTop_toBottomOf="@+id/deff1" />
+
+                    <ImageView
+                        android:id="@+id/deff1"
+                        android:layout_width="75dp"
+                        android:layout_height="75dp"
+                        android:layout_marginBottom="8dp"
+
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_marginTop="8dp"
+                        android:background="@android:color/transparent"
+                        android:scaleType="fitCenter"
+                        android:src="@drawable/notifications"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintHorizontal_bias="0.5"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <Switch
+                        android:id="@+id/switch2"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginEnd="16dp"
+                        android:layout_marginTop="16dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
                 </android.support.constraint.ConstraintLayout>
             </android.support.v7.widget.CardView>
 

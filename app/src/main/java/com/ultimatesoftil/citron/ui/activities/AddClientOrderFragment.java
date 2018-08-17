@@ -1,5 +1,7 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -68,6 +70,7 @@ import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.FButton;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.models.SmsSenderReceiver;
 import com.ultimatesoftil.citron.util.Utils;
 import com.android.datetimepicker.date.DatePickerDialog;
 import com.android.datetimepicker.time.RadialPickerLayout;
@@ -76,10 +79,13 @@ import com.android.datetimepicker.time.TimePickerDialog;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.sql.Time;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.UUID;
@@ -101,7 +107,6 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     private DatabaseReference myRef;
     private FButton saveOrder;
     private ImageButton back;
-    private ListView orderDetails;
     private TextInputEditText sum;
     private Client client;
     private EditText pt[]=null;
@@ -110,6 +115,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     private Spinner sp[]=null;
     private String[]links=null;
     private ImageButton[]addimgs=null;
+    private long[] notifications;
     private EditText cmt=null;
     private Calendar calendar;
     private DateFormat dateFormat;
@@ -117,17 +123,15 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     private double total=0;
     private int counter=0;
     private Product[]temp;
+
     private FirebaseStorage storage;
     private StorageReference storageReference;
     private ProgressBar progressBar;
-    private String DownloadUrl;
-    private ListView notificationlist;
     private String pushedref;
     private static final String TIME_PATTERN = "HH:mm";
-    private ListView notifications;
-    private ArrayList<Product> notificationProducs=new ArrayList<>();
-    private ArrayList<Order> orders=new ArrayList<>();
+    private ListView orderDetails;
     private TextView date;
+    private boolean save=true;
 
 
     @Override
@@ -148,7 +152,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
 
         progressBar=(ProgressBar) view.findViewById(R.id.progressBar2);
         progressBar.setVisibility(View.INVISIBLE);
-        notifications=(ListView)view.findViewById(R.id.notif_list_create);
+       orderDetails=(ListView)view.findViewById(R.id.notif_list_create);
 
         /// /Get Firebase auth instance
         auth = FirebaseAuth.getInstance();
@@ -207,6 +211,8 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                               temp=new Product[j];
                               sp=new Spinner[j];
                               pt = new EditText[j];
+                              notifications=new long[j];
+                              Arrays.fill(notifications,0);
                               for (int a = 0; a < j; a++)
                                   addPriceField(parent, a + 1, pt);
 
@@ -236,7 +242,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                if(validateClientFields()){
                    client= getClient();
                  saveClient(client);
-                 if(validateFields()){
+                 if(validateFields()&&save){
                      Order order=getOrder();
                      saveOrder(order);
                      getActivity().getSupportFragmentManager().popBackStack();
@@ -265,6 +271,8 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         email.setText(client.getEmail()!=null?client.getEmail():"");
         setUpOrderList();
 
+    }else {
+        setUpOrderList();
     }
     }
 
@@ -489,9 +497,11 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
 
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                           if(System.currentTimeMillis()-calendar.getTimeInMillis()>0){
-                               
-                           }
+                           //if(System.currentTimeMillis()-calendar.getTimeInMillis()>0){
+                           //need to implement safety
+                            notifications[i-1]=calendar.getTimeInMillis();
+                            Log.d("notification","index: "+String.valueOf(i-1)+" "+calendar.getTimeInMillis());
+                           //}
                         }
                     });
                     AlertDialog dialog = alert.create();
@@ -546,7 +556,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                     return;
                 }
                 if(validateFields()){
-
+                    save=false;
                     Order order=getOrder();
                    saveOrder(order);
                 }else{
@@ -710,6 +720,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
       for(int j=0;j<i;j++){
           Product product= new Product();
           product.setKind(String.valueOf(spinner.getSelectedItemPosition()));
+          product.setNotification(notifications!=null&&notifications[j]!=0?notifications[j]:0);
 
           product.setTime(System.currentTimeMillis());
           product.setPrice(pt[j]!=null?Double.parseDouble(pt[j].getText().toString()):null);
@@ -723,7 +734,9 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
 
           product.setStatus(sp[j].getSelectedItemPosition());
           //check if product image taken
-
+          if(notifications[j]!=0){
+              setNotification(product,j);
+          }
 
           products.add(product);
 
@@ -734,6 +747,17 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
       order.setProducts(products);
       return order;
   }
+
+    private void setNotification(Product product,int index) {
+        int RQS_1 = Utils.randomNum();
+        Intent intent = new Intent(getActivity(), SmsSenderReceiver.class);
+        intent.putExtra("name",cname.getText().toString());
+        Log.d("notification","set"+RQS_1+cname.getText());
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), RQS_1, intent, 0);
+        AlarmManager alarmManager=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
+        alarmManager.set(AlarmManager.RTC_WAKEUP,notifications[index],pendingIntent);
+    }
+
     private Client getClient() {
 
             String name = cname.getText().toString() != null ? cname.getText().toString() : "";

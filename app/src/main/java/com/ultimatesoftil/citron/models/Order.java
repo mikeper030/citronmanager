@@ -1,5 +1,7 @@
 package com.ultimatesoftil.citron.models;
 
+import com.google.firebase.database.Exclude;
+
 import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -34,12 +36,6 @@ public class Order implements Serializable{
     }
 
     int quantity;
-    public String getDateTimeFormatted() {
-        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"
-                , Locale.getDefault());
-        formatter.setTimeZone(TimeZone.getDefault());
-        return formatter.format(new Date(time));
-    }
     public long getTime() {
         return time;
     }
@@ -65,6 +61,14 @@ public class Order implements Serializable{
     public void setProducts(ArrayList<Product> products) {
         this.products = products;
     }
+
+//    @Exclude
+//    public String getDateTimeFormatted() {
+//        SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss"
+//                , Locale.getDefault());
+//        formatter.setTimeZone(TimeZone.getDefault());
+//        return formatter.format(new Date(time));
+  //  }
 
 
 

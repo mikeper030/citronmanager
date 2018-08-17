@@ -1,5 +1,7 @@
 package com.ultimatesoftil.citron.util;
 
+import android.telephony.SmsManager;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -34,5 +36,13 @@ public class Utils {
                 , Locale.getDefault());
         formatter.setTimeZone(TimeZone.getDefault());
         return formatter.format(time.getTime());
+    }
+    private void sendSMS(String phoneNumber, String message) {
+        SmsManager sms = SmsManager.getDefault();
+        sms.sendTextMessage(phoneNumber, null, message, null, null);
+    }
+    public static int randomNum(){
+        Random rand = new Random();
+        return rand.nextInt(10000000);
     }
 }

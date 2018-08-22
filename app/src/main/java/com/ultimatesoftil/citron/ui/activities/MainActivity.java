@@ -1,11 +1,18 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.ActionBar;
+import android.support.v7.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -14,6 +21,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -70,40 +78,48 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_list);
-        auth = FirebaseAuth.getInstance();
-        mFirebaseDatabase = FirebaseDatabase.getInstance();
-        FirebaseUser user = auth.getCurrentUser();
-
-
-
-        try {
-            userID = user.getUid();
-        } catch (Exception e) {
-            startActivity(new Intent(MainActivity.this,EmailLogin.class));
+        // welcome setting is on
+        if( PreferenceManager.getDefaultSharedPreferences(this).getBoolean("welcome",false)&&getIntent().getBooleanExtra("done",true)){
             finish();
-            Snackbar.make(findViewById(android.R.id.content),getResources().getString(R.string.no_connection),Snackbar.LENGTH_SHORT).show();
-        }
-        if(user==null||userID==null){
-            startActivity(new Intent(MainActivity.this,EmailLogin.class));
-            finish();
-        }else{
-            setupToolbar();
-            Log.d("user",user.getUid());
-            if (isTwoPaneLayoutUsed()) {
-                twoPaneMode = true;
-                LogUtil.logD("TEST","TWO POANE TASDFES");
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            startActivity(new Intent(MainActivity.this,SplashActivity.class));
+        }else {
 
-                enableActiveItemState();
+
+            setContentView(R.layout.activity_list);
+            auth = FirebaseAuth.getInstance();
+            mFirebaseDatabase = FirebaseDatabase.getInstance();
+            FirebaseUser user = auth.getCurrentUser();
+
+
+            try {
+                userID = user.getUid();
+            } catch (Exception e) {
+                startActivity(new Intent(MainActivity.this, EmailLogin.class));
+                finish();
+                Snackbar.make(findViewById(android.R.id.content), getResources().getString(R.string.no_connection), Snackbar.LENGTH_SHORT).show();
             }
+            if (user == null || userID == null) {
+                startActivity(new Intent(MainActivity.this, EmailLogin.class));
+                finish();
+            } else {
+                setupToolbar();
+                Log.d("user", user.getUid());
+                if (Build.VERSION.SDK_INT >= 23 && !hasPermissions(this, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.RECORD_AUDIO, android.Manifest.permission.CAMERA}))
+                    requestpermissions(this);
+                if (isTwoPaneLayoutUsed()) {
+                    twoPaneMode = true;
+                    LogUtil.logD("TEST", "TWO POANE TASDFES");
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
-            if (savedInstanceState == null && twoPaneMode) {
-                setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-                setupDetailFragment();
+                    enableActiveItemState();
+                }
+
+                if (savedInstanceState == null && twoPaneMode) {
+                    setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+                    setupDetailFragment();
+                }
             }
         }
-
     }
 
     /**
@@ -172,13 +188,47 @@ public class MainActivity extends BaseActivity implements ClientListFragment.Cal
         return super.onOptionsItemSelected(item);
     }
 
-    @Override
-    protected int getSelfNavDrawerItem() {
-        return R.id.nav_quotes;
-    }
+//    @Override
+//    protected int getSelfNavDrawerItem() {
+//        return R.id.quotes;
+//    }
 
     @Override
     public boolean providesActivityToolbar() {
+        return true;
+    }
+    public static void requestpermissions(Activity activity) {
+
+
+        // Should we show an explanation?
+        if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                android.Manifest.permission.WRITE_EXTERNAL_STORAGE)) {
+            Toast.makeText(activity, "Write permission is needed for camera", Toast.LENGTH_SHORT).show();
+            // Show an explanation to the user *asynchronously* -- don't
+            // block this thread waiting for the user's response! After the
+            // user sees the explanation, try again to request the
+            // permission.
+            ActivityCompat.requestPermissions(activity, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA, Manifest.permission.SEND_SMS},
+                    5);
+
+            Toast.makeText(activity, "REQUEST  PERMISSIONS", Toast.LENGTH_LONG).show();
+
+        } else {
+            // No explanation needed, we can request the permission.
+            ActivityCompat.requestPermissions(activity, new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.CAMERA, Manifest.permission.SEND_SMS},
+                    6);
+
+
+        }
+    }
+    public static boolean hasPermissions(Context context, String... permissions) {
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
+            for (String permission : permissions) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                    return false;
+                }
+            }
+        }
         return true;
     }
 }

@@ -1,6 +1,7 @@
 package com.ultimatesoftil.citron.models;
 
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.graphics.Bitmap;
 
 import java.io.Serializable;
@@ -55,6 +56,16 @@ public class Product implements Serializable{
     public void setNotification(long notification) {
         this.notification = notification;
 
+    }
+
+    private PendingIntent intent;
+
+    public PendingIntent getIntent() {
+        return intent;
+    }
+
+    public void setIntent(PendingIntent intent) {
+        this.intent = intent;
     }
 
     double price;

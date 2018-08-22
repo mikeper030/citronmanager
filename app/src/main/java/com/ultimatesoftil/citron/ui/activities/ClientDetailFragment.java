@@ -1,11 +1,17 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.app.ProgressDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.CollapsingToolbarLayout;
+import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
 import android.support.v7.widget.SearchView;
@@ -28,6 +34,9 @@ import android.widget.Toast;
 
 import butterknife.Bind;
 
+import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -37,6 +46,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.mindorks.paracamera.Camera;
 import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.ClientListAdapter;
@@ -48,8 +61,12 @@ import com.ultimatesoftil.citron.models.Product;
 import com.ultimatesoftil.citron.ui.base.BaseActivity;
 import com.ultimatesoftil.citron.ui.base.BaseFragment;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.UUID;
 
 /**
  * Shows the quote detail page.
@@ -85,6 +102,72 @@ public class ClientDetailFragment extends BaseFragment {
     private ArrayList<Product> notificationProducs= new ArrayList<>();
     @Bind(R.id.collapsing_toolbar)
     CollapsingToolbarLayout collapsingToolbar;
+    private ImageView backdropImg;
+    private FloatingActionButton send;
+    private FloatingActionButton pic;
+    private Camera camera;
+    private FirebaseStorage storage;
+    private StorageReference storageReference;
+
+    public static File saveBitmapToImg(Bitmap bmp, String filename) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 60, bytes);
+        File f = new File(Environment.getExternalStorageDirectory()+"/salesmanager/pictures/"+filename+
+                ".jpg");
+        File g = new File(Environment.getExternalStorageDirectory()+"/salesmanager/pictures/");
+        if(!g.exists())
+            g.mkdirs();
+
+        f.createNewFile();
+        FileOutputStream fo = new FileOutputStream(f);
+        fo.write(bytes.toByteArray());
+        fo.close();
+        return f;
+
+    }
+    private void uploadFile2(Uri filepath){
+        final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+        progressDialog.setTitle("Uploading...");
+        progressDialog.show();
+        StorageReference ref = storageReference.child("images/" + UUID.randomUUID().toString());
+        ref.putFile(filepath).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                progressDialog.dismiss();
+                @SuppressWarnings("VisibleForTests") final String  downloadUrl =
+                        taskSnapshot.getMetadata().getDownloadUrl().toString();
+               client.setImglink(downloadUrl);
+                myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client);
+
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                progressDialog.dismiss();
+                Toast.makeText(getActivity(), "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Camera.REQUEST_TAKE_PHOTO) {
+            Bitmap bitmap = camera.getCameraBitmap();
+            if (bitmap != null) {
+
+                try {
+                   File f =saveBitmapToImg(bitmap, "background_img");
+                   uploadFile2(Uri.fromFile(f));
+                   Glide.with(getActivity()).load(bitmap).fitCenter().into(backdropImg);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+            } else {
+                Snackbar.make(getActivity().findViewById(android.R.id.content), getResources().getString(R.string.error_cam), Snackbar.LENGTH_SHORT).show();
+            }
+        }
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -94,6 +177,8 @@ public class ClientDetailFragment extends BaseFragment {
         mFirebaseDatabase = FirebaseDatabase.getInstance();
         myRef = mFirebaseDatabase.getReference();
         FirebaseUser user = auth.getCurrentUser();
+        storage = FirebaseStorage.getInstance();
+        storageReference = storage.getReference();
         try {
             userID = user.getUid();
         } catch (Exception e) {
@@ -108,13 +193,8 @@ public class ClientDetailFragment extends BaseFragment {
 
         }else {
             client=getFirstClient();
+
         }
-
-
-
-
-
-
 
         setHasOptionsMenu(true);
     }
@@ -129,7 +209,7 @@ public class ClientDetailFragment extends BaseFragment {
         }
 
         if (client != null) {
-            loadBackdrop();
+
             collapsingToolbar.setTitle(client.getName());
 //            author.setText(dummyItem.author);
 //            quote.setText(dummyItem.content);
@@ -153,7 +233,11 @@ public class ClientDetailFragment extends BaseFragment {
         notifications=(ListView)view.findViewById(R.id.details_notification_list);
         defff1=(ImageView) view.findViewById(R.id.deff1);
         defff2=(TextView)view.findViewById(R.id.deff2);
+        send=(FloatingActionButton)view.findViewById(R.id.c_sms);
         aswitch=(Switch)view.findViewById(R.id.switch2);
+        backdropImg=(ImageView)view.findViewById(R.id.backdrop);
+        pic=(FloatingActionButton) view.findViewById(R.id.cam);
+        loadBackdrop();
         if(client!=null) {
             name.setText(client.getName() != null ? client.getName() : "");
             email.setText(client.getEmail() != null ? client.getEmail() : "");
@@ -201,6 +285,39 @@ public class ClientDetailFragment extends BaseFragment {
                 getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
             }
         });
+        send.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Uri uri = Uri.parse("smsto:"+client.getPhone());
+                Intent it = new Intent(Intent.ACTION_SENDTO, uri);
+                it.putExtra("", "");
+                startActivity(it);
+            }
+        });
+       pic.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               takePicture();
+           }
+       });
+    }
+
+    private void takePicture() {
+
+        camera = new Camera.Builder()
+                .resetToCorrectOrientation(true)// it will rotate the camera bitmap to the correct orientation from meta data
+                .setTakePhotoRequestCode(1)
+                .setDirectory("salesmanager/pictures")
+                .setName("jfnjfn")
+                .setImageFormat(Camera.IMAGE_JPEG)
+                .setCompression(75)
+                .setImageHeight(1000)// it will try to achieve this height as close as possible maintaining the aspect ratio;
+                .build(this);
+        try {
+            camera.takePicture();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private void setUpNotifications() {
@@ -236,7 +353,10 @@ public class ClientDetailFragment extends BaseFragment {
                     defff1.setVisibility(View.VISIBLE);
                     defff2.setVisibility(View.VISIBLE);
                 }
-
+                if(notificationProducs.size()==0){
+                    defff1.setVisibility(View.VISIBLE);
+                    defff2.setVisibility(View.VISIBLE);
+                }
             }
             @Override
             public void onCancelled(DatabaseError databaseError) {
@@ -362,7 +482,11 @@ public class ClientDetailFragment extends BaseFragment {
 
 
     private void loadBackdrop() {
-    //    Glide.with(this).load(dummyItem.photoId).centerCrop().into(backdropImg);
+        if(client!=null&&client.getImglink()!=null){
+            Glide.with(this).load(client.getImglink()).fitCenter().into(backdropImg);
+
+        }else
+        Glide.with(this).load(R.drawable.backdrop_default).fitCenter().into(backdropImg);
     }
 
 
@@ -377,7 +501,6 @@ public class ClientDetailFragment extends BaseFragment {
 
     public ClientDetailFragment() {}
     private Client getFirstClient() {
-
         Query query= myRef.child("users").child(userID).child("clients").limitToFirst(1);
         query.addChildEventListener(new ChildEventListener() {
             @Override

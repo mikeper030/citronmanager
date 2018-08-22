@@ -86,6 +86,16 @@ public class Client implements Serializable{
     String homephone;
     String email;
     String address;
+    String imglink;
+
+    public String getImglink() {
+        return imglink;
+    }
+
+    public void setImglink(String imglink) {
+        this.imglink = imglink;
+    }
+
     boolean notifications_enabled=true;
 
     public boolean isNotifications_enabled() {

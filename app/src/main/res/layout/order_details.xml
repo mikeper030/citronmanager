@@ -10,6 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_margin="50dp"
+        android:clickable="true"
         android:background="@color/material_gray1">
 
         <ImageButton
@@ -40,7 +41,7 @@
             android:id="@+id/constraintLayout2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="120dp"
             android:layout_marginTop="54dp"
             android:background="@drawable/layout_border_white"
             app:layout_constraintStart_toStartOf="parent"
@@ -162,7 +163,7 @@
         <android.support.constraint.ConstraintLayout
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
-            android:layout_marginEnd="16dp"
+            android:layout_marginEnd="120dp"
             android:layout_marginTop="54dp"
             android:layout_marginBottom="16dp"
             android:background="@drawable/layout_border_white"
@@ -208,7 +209,7 @@
             <ScrollView
                 android:id="@+id/ScrollView2"
                 android:layout_width="381dp"
-                android:layout_height="350dp"
+                android:layout_height="420dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginStart="16dp"
                 app:layout_constraintBottom_toBottomOf="parent"
@@ -257,9 +258,9 @@
 
         <LinearLayout
             android:layout_width="446dp"
-            android:layout_height="wrap_content"
+            android:layout_height="418dp"
             android:layout_marginBottom="16dp"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="120dp"
             android:background="@drawable/layout_border_white"
             android:orientation="vertical"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -275,6 +276,13 @@
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:orientation="horizontal">
 
                 <Switch
@@ -282,10 +290,19 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content" />
 
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/not_no"
+                    android:textColor="@color/white"
+                    android:id="@+id/notification_def"
+                    android:layout_marginRight="50dp"
+                    android:textSize="16sp" />
+            </LinearLayout>
                 <ListView
                     android:id="@+id/notif_list"
                     android:layout_width="370dp"
-                    android:layout_height="250dp"
+                    android:layout_height="350dp"
                     android:layout_marginTop="30dp">
 
                 </ListView>

@@ -129,6 +129,15 @@ public class OrderListAdapter extends BaseAdapter{
         final Activity activity= (Activity) convertView.getContext();
         final Order item = (Order) getItem(position);
         ((TextView) convertView.findViewById(R.id.textView5)).setText(Utils.FormatMillis(item.getTime()));
+        if(item.getUpdated()!=0){
+            TextView textView=(TextView)convertView.findViewById(R.id.edited);
+            TextView date=(TextView)convertView.findViewById(R.id.edited_date);
+            textView.setVisibility(View.VISIBLE);
+            date.setText(String.valueOf(Utils.FormatMillis(item.getUpdated())));
+            date.setVisibility(View.VISIBLE);
+
+
+        }
         ((TextView) convertView.findViewById(R.id.textView6)).setText(String.valueOf(position+1));
         ((ImageButton)convertView.findViewById(R.id.orders_menu)).setOnClickListener(new View.OnClickListener() {
             @Override

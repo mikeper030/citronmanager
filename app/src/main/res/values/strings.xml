@@ -9,6 +9,11 @@
     <string name="samples_subhead">Hello Subhead</string>
     <string name="samples_hint_username">Username</string>
     <string name="samples_hint_email">E-Mail</string>
+    <string-array name="payments">
+        <item>מזומן</item>
+        <item>אשראי</item>
+        <item>שיק</item>
+    </string-array>
     <string-array name="dates">
         <item>יום</item>
         <item>יומיים</item>
@@ -24,7 +29,7 @@
         <item>אתרוג</item>
         <item>לולב</item>
     </string-array>
-    <string name="navigation_title">My navigation title</string>
+    <string name="navigation_title">מנהל מכירות</string>
     <string name="navigation_quotes">Quotes</string>
     <string name="navigation_samples">Samples</string>
     <string name="navigation_settings">Settings</string>
@@ -87,4 +92,13 @@
     <string name="notif">לא נמצאו התראות ללקוח זה</string>
     <string name="search">שם לקוח או מספר נייד</string>
     <string name="exported">המסמך נוצר בהצלחה</string>
+    <string name="due">חוב לתשלום</string>
+    <string name="phst">צילום שיק (אופציונאלי)</string>
+    <string name="not_no">לא נמצאו התראות עבור לקוח זה</string>
+    <string name="visual">מראה</string>
+    <string name="welcome">הצג מסך פתיחה</string>
+    <string name="send">שליחת שיק ללקוח</string>
+    <string name="update">עדכן</string>
+    <string name="gen_message">שליחת הודעה כללית</string>
+    <string name="order_st">מצב הזמנות</string>
 </resources>

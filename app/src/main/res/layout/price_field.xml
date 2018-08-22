@@ -13,7 +13,7 @@
         android:theme="@style/MyEditTextTheme"
         android:layout_marginLeft="8dp"
         android:layout_weight="5"
-        android:inputType="number"/>
+        android:inputType="numberDecimal"/>
    <android.support.constraint.ConstraintLayout
        android:layout_marginBottom="4dp"
        android:layout_marginTop="4dp"

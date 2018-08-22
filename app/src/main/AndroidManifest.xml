@@ -1,43 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.ultimatesoftil.citron">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.SEND_SMS"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
+
     <application
-        android:allowBackup="true"
         android:name=".ui.activities.Application"
+        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/Theme.Main"
-        android:supportsRtl="true">
-
-        <activity android:name="com.ultimatesoftil.citron.ui.activities.MainActivity"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.Main">
+        <activity
+            android:name=".ui.activities.MainActivity"
             android:windowSoftInputMode="stateHidden">
-
             <intent-filter>
-
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <receiver android:name=".models.SmsSenderReceiver"/>
-        <service android:name=".models.SmsService"/>
-        <activity android:name=".FirebaseAuth.EmailSignup"/>
-        <activity android:name=".FirebaseAuth.EmailLogin"/>
-        <activity android:name="com.ultimatesoftil.citron.ui.activities.ClientDetailActivity"
-            android:label=""
-            android:parentActivityName="com.ultimatesoftil.citron.ui.activities.MainActivity"/>
-        <activity android:name="com.ultimatesoftil.citron.ui.ViewSamplesActivity"
-            android:label="Samples"
-            android:parentActivityName="com.ultimatesoftil.citron.ui.activities.MainActivity"/>
-        <activity android:name="com.ultimatesoftil.citron.ui.SettingsActivity"
-            android:label="Settings"
-            android:parentActivityName="com.ultimatesoftil.citron.ui.activities.MainActivity"/>
+        <activity
+            android:name=".ui.activities.SplashActivity"
+            android:theme="@style/Theme.Design.NoActionBar"></activity>
 
+        <receiver android:name=".models.SmsSenderReceiver" />
+
+        <service android:name=".models.SmsService" />
+
+        <activity android:name=".FirebaseAuth.EmailSignup" />
+        <activity android:name=".FirebaseAuth.EmailLogin" />
+        <activity
+            android:name=".ui.activities.ClientDetailActivity"
+            android:label=""
+            android:parentActivityName=".ui.activities.MainActivity" />
+        <activity
+            android:name=".ui.ViewSamplesActivity"
+            android:label="Samples"
+            android:parentActivityName=".ui.activities.MainActivity" />
+        <activity
+            android:name=".ui.SettingsActivity"
+            android:label="Settings"
+            android:parentActivityName=".ui.activities.MainActivity" />
+        <activity android:name=".GenericOrdersActivity"></activity>
     </application>
 
 </manifest>

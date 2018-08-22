@@ -1,5 +1,6 @@
 package com.ultimatesoftil.citron.adapters;
 
+import android.app.AlarmManager;
 import android.content.Context;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.PopupMenu;
@@ -110,6 +111,12 @@ public class NotificationListAdapter extends BaseAdapter {
         switche.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+               if(!b){
+                   AlarmManager alarmManager=(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+                   if(item.getIntent()!=null){
+                       alarmManager.cancel(item.getIntent());
+                   }
+               }
                item.setNotification_checked(b);
                saveUpdate(item);
             }

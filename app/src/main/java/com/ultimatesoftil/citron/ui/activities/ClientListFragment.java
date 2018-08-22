@@ -30,6 +30,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -43,7 +45,9 @@ import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.ClientListAdapter;
 import com.ultimatesoftil.citron.models.Client;
+import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.ui.base.BaseActivity;
 
 /**
  * Shows a list of all available quotes.
@@ -109,6 +113,14 @@ public class ClientListFragment extends ListFragment {
             public void onClick(View view) {
                 AddClientOrderFragment fragobj = new AddClientOrderFragment();
                 getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+//                HashMap<Client,Order>data= BaseActivity.data;
+//                for (Map.Entry<Client, Order> entry : data.entrySet()) {
+//                    Client client = entry.getKey();
+//                    Order order = entry.getValue();
+//                    // ...
+//                    myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client);
+//                    myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").push().setValue(order);
+//                }
 
             }
         });
@@ -203,7 +215,9 @@ public class ClientListFragment extends ListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                // your logic
+                SettingsFragment fragobj = new SettingsFragment();
+                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+
                 return true;
         }
         return super.onOptionsItemSelected(item);
@@ -272,7 +286,20 @@ public class ClientListFragment extends ListFragment {
         };
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(clients!=null&&clients.size()>0){
+           Log.d("list","update");
+            adapter=new ClientListAdapter(getActivity(),clients);
+            setListAdapter(adapter);
+            setUpRecyclerView();
+
+        }
+    }
+
     private void setUpRecyclerView() {
+
         myRef.child("users").child(userID).child("clients").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {

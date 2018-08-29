@@ -14,6 +14,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
@@ -73,6 +74,7 @@ import com.mindorks.paracamera.Camera;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.adapters.NotificationListAdapter;
 import com.ultimatesoftil.citron.adapters.OrderListAdapter;
+import com.ultimatesoftil.citron.models.AlarmParcel;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.FButton;
@@ -113,7 +115,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     private Camera camera;
     private String userID;
     private DatabaseReference myRef;
-    private FButton saveOrder;
+    private FButton saveOrder,updatebtn;
     private ImageButton back;
     private TextInputEditText sum;
     private Client client;
@@ -152,6 +154,8 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     private View sendrow;
     private View notes;
     private Context context;
+    private long temp1;
+    private String tempname;
     @Override
     public void onViewCreated(final View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -171,7 +175,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         progressBar=(ProgressBar) view.findViewById(R.id.progressBar2);
         progressBar.setVisibility(View.INVISIBLE);
         orderDetails=(ListView)view.findViewById(R.id.notif_list_create);
-
+        updatebtn=(FButton)view.findViewById(R.id.FButton2);
         /// /Get Firebase auth instance
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -183,6 +187,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
             userID = user.getUid();
         } catch (Exception e) {
         }
+
         calendar = Calendar.getInstance();
         dateFormat = DateFormat.getDateInstance(DateFormat.LONG, Locale.getDefault());
         timeFormat = new SimpleDateFormat(TIME_PATTERN, Locale.getDefault());
@@ -263,8 +268,12 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
          @Override
          public void onClick(View view) {
                if(validateClientFields()){
-                   client= getClient();
-                 saveClient(client);
+                   Bundle bundle=getArguments();
+                   if(bundle==null||bundle.getSerializable("client")==null) {
+                       client= getClient();
+                       saveClient(client);
+                   }
+
 
              }else{
 
@@ -280,37 +289,69 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
 
              if(validateFields()){
                  Order order=getOrder();
-                 saveOrder(order);
+                 saveOrder(client,order);
 
              }else {
-                 Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "נא מלא כמות ומחיר להזמנה!", Snackbar.LENGTH_LONG);
+                 Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "הלקוח נשמר", Snackbar.LENGTH_LONG);
                  View v = snack.getView();
                  FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
                  params.gravity = Gravity.TOP|Gravity.CENTER;
                  v.setLayoutParams(params);
                  snack.show();
+                 getActivity().getSupportFragmentManager().popBackStack();
              }
          }
      });
-    back.setOnClickListener(new View.OnClickListener() {
-        @Override
-        public void onClick(View view) {
-            getActivity().getSupportFragmentManager().popBackStack();
-        }
-    });
+   if(Utils.isTabletDevice(getActivity())){
+       back.setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View view) {
+               getActivity().getSupportFragmentManager().popBackStack();
+           }
+       });
+   }
+
     Bundle bundle=getArguments();
     if(bundle!=null&&bundle.getSerializable("client")!=null){
-        Client client=(Client) bundle.getSerializable("client");
+         client=(Client) bundle.getSerializable("client");
+        tempname=client.getName();
         cname.setText(client.getName()!=null?client.getName():"");
         phone.setText(client.getHomephone()!=null?client.getHomephone():"");
         mobile.setText(client.getPhone()!=null?client.getPhone():"");
         address.setText(client.getAddress()!=null?client.getAddress():"");
         email.setText(client.getEmail()!=null?client.getEmail():"");
         setUpOrderList();
+        updatebtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String name = cname.getText().toString() != null ? cname.getText().toString() : "";
+                String phon = mobile.getText().toString() != null ? mobile.getText().toString() : "";
 
+
+                client.setName(name);
+                client.setPhone(phon);
+                client.setTime(System.currentTimeMillis());
+                if(!TextUtils.isEmpty(address.getText().toString()))
+                    client.setAddress(address.getText().toString());
+                if(!TextUtils.isEmpty(email.getText().toString()))
+                    client.setEmail(email.getText().toString());
+                if(!TextUtils.isEmpty(phone.getText().toString()))
+                    client.setHomephone(phone.getText().toString());
+
+                updateClient(client,tempname);
+                Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "עודכן בהצלחה", Snackbar.LENGTH_LONG);
+                View v = snack.getView();
+                FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
+                params.gravity = Gravity.TOP|Gravity.CENTER;
+                v.setLayoutParams(params);
+                snack.show();
+            }
+        });
+        setUpdateButtonListener(updatebtn);
     }else {
 
     }
+
     }
 
 
@@ -320,6 +361,9 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         context = container.getContext();
+        if(!Utils.isTabletDevice(getActivity())){
+            return inflater.inflate(R.layout.add_orders_small,container,false);
+        }else
         return inflater.inflate(R.layout.add_client,container,false);
 
     }
@@ -511,14 +555,42 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                     // disallow cancel of AlertDialog on click of back button and outside touch
                     date = (TextView) view1.findViewById(R.id.date_display);
                     Button select = (Button) view1.findViewById(R.id.select_custom);
+                    final int [] counter=new int[1];
+                    counter[0]=0;
                     select.setOnClickListener(AddClientOrderFragment.this);
+
                     Spinner pre = (Spinner) view1.findViewById(R.id.select_def);
-
-
                     pre.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
-                        public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                            AlarmManager alarmManager=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
 
+                             switch (pos){
+                                 case 0:
+                                     Log.d("index alarm",String.valueOf(0));
+                                     notifications[i - 1]=alarmManager.INTERVAL_DAY;
+                                     Log.d("notification default", "index: " + String.valueOf(i - 1) + " " + alarmManager.INTERVAL_DAY);
+                                     counter[0]++;
+                                     Log.d("counter n",String.valueOf(counter[0]));
+                                     break;
+                                 case 1:
+                                     notifications[i - 1]=alarmManager.INTERVAL_DAY*2;
+                                     Log.d("index alarm",String.valueOf(1));
+                                     counter[0]++;
+                                     Log.d("notification default", "index: " + String.valueOf(i - 1) + " " + alarmManager.INTERVAL_DAY*2);
+                                     Log.d("counter n",String.valueOf(counter[0]));
+
+                                     break;
+
+                                     case 2:
+                                         notifications[i - 1]=alarmManager.INTERVAL_DAY*3;
+                                         Log.d("index alarm",String.valueOf(2));
+                                         counter[0]++;
+                                         Log.d("notification default", "index: " + String.valueOf(i - 1) + " " + alarmManager.INTERVAL_DAY*3);
+                                         Log.d("counter n",String.valueOf(counter[0]));
+
+                                         break;
+                             }
                         }
 
                         @Override
@@ -542,9 +614,14 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                         public void onClick(DialogInterface dialog, int which) {
                             //if(System.currentTimeMillis()-calendar.getTimeInMillis()>0){
                             //need to implement safety
-                            notifications[i - 1] = calendar.getTimeInMillis();
-                            Log.d("notification", "index: " + String.valueOf(i - 1) + " " + calendar.getTimeInMillis());
-                            //}
+                            if(counter[0]>1){
+
+                            }else {
+                                notifications[i - 1] = calendar.getTimeInMillis();
+                                Log.d("notification picked", "index: " + String.valueOf(i - 1) + " " + calendar.getTimeInMillis());
+
+                            }
+
                         }
                     });
                     AlertDialog dialog = alert.create();
@@ -818,12 +895,11 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
             @Override
             public void onClick(View view) {
                 if(validateClientFields()){
-
-                    client= getClient();
-                    saveClient(client);
                     Bundle bundle=getArguments();
-                    if(bundle==null||bundle.getSerializable("client")==null){
+                    if(bundle==null||bundle.getSerializable("client")==null) {
                         setUpOrderList();
+                        client = getClient();
+                        saveClient(client);
                     }
                 }else{
 
@@ -838,7 +914,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                 if(validateFields()){
                     save=false;
                     Order order=getOrder();
-                   saveOrder(order);
+                   saveOrder(client,order);
                 }else{
                     Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "נא הזן מחיר!", Snackbar.LENGTH_LONG);
                     View v = snack.getView();
@@ -890,7 +966,14 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         }
     });
     }
-
+    private void updateClient(Client client,String tempname) {
+        myRef.child("users").child(userID).child("clients").child(tempname).child("details").setValue(client, new DatabaseReference.CompletionListener() {
+            @Override
+            public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                progressBar.setVisibility(View.INVISIBLE);
+            }
+        });
+    }
     private void saveClient(Client client) {
     myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client, new DatabaseReference.CompletionListener() {
         @Override
@@ -908,7 +991,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
     return true;
     }
 
-        public void saveOrder(final Order order){
+        public void saveOrder(final Client client,final Order order){
         progressBar.setVisibility(View.VISIBLE);
             if(send!=null) {
                 if (send.isChecked() && !TextUtils.isEmpty(email.getText().toString())) {
@@ -923,7 +1006,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                     return;
                 }
             }
-                        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").push().setValue(order, new DatabaseReference.CompletionListener() {
+                        myRef.child("users").child(userID).child("clients").child(cname.getText().toString()).child("orders").push().setValue(order, new DatabaseReference.CompletionListener() {
                             @Override
                             public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
                                 pushedref = databaseReference.getKey();
@@ -1028,7 +1111,6 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
           Product product= new Product();
           product.setKind(String.valueOf(spinner.getSelectedItemPosition()));
           product.setNotification(notifications!=null&&notifications[j]!=0?notifications[j]:0);
-
           product.setTime(System.currentTimeMillis());
           product.setPrice(pt[j]!=null?Double.parseDouble(pt[j].getText().toString()):null);
           try {
@@ -1042,7 +1124,7 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
           product.setStatus(sp[j].getSelectedItemPosition());
           //check if product image taken
           if(notifications[j]!=0){
-              setNotification(product,j);
+              setNotification(product,j,client);
           }
 
           products.add(product);
@@ -1121,15 +1203,21 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
             }
         }.execute();
     }
-
-    private void setNotification(Product product,int index) {
+    private void setNotification(Product product,int index,Client client) {
         int RQS_1 = Utils.randomNum();
         Intent intent = new Intent(getActivity(), SmsSenderReceiver.class);
         intent.putExtra("name",cname.getText().toString());
+        intent.putExtra("phone",!TextUtils.isEmpty(mobile.getText().toString())?mobile.getText().toString():client.getPhone());
         Log.d("notification","set"+RQS_1+cname.getText());
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity(), RQS_1, intent, 0);
-        product.setIntent(pendingIntent);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(getActivity().getApplicationContext(), RQS_1, intent, 0);
+        product.setRqs(RQS_1);
         AlarmManager alarmManager=(AlarmManager)getActivity().getSystemService(Context.ALARM_SERVICE);
+        AlarmParcel parcel=new AlarmParcel();
+        parcel.setName(cname.getText().toString());
+        parcel.setTime(product.getNotification());
+        parcel.setPhone(!TextUtils.isEmpty(mobile.getText().toString())?mobile.getText().toString():client.getPhone());
+        parcel.setRequest(RQS_1);
+        Utils.saveNotification(parcel,getActivity());
         alarmManager.set(AlarmManager.RTC_WAKEUP,notifications[index],pendingIntent);
     }
 
@@ -1341,5 +1429,33 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         if(view.getId()==R.id.select_custom){
             DatePickerDialog.newInstance(this, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show(getActivity().getFragmentManager(), "datePicker");
         }
+    }
+    private void setUpdateButtonListener(FButton updatebtn) {
+     setChangeListener(cname);
+     setChangeListener(phone);
+        setChangeListener(mobile);
+        setChangeListener(email);
+        setChangeListener(address);
+    }
+
+    private void setChangeListener(final TextInputEditText val) {
+    val.addTextChangedListener(new TextWatcher() {
+        @Override
+        public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+        }
+
+        @Override
+        public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+            if(!TextUtils.isEmpty(val.getText().toString())){
+                updatebtn.setVisibility(View.VISIBLE);
+            }
+        }
+
+        @Override
+        public void afterTextChanged(Editable editable) {
+
+        }
+    });
     }
 }

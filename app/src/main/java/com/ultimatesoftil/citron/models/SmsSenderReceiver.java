@@ -7,18 +7,22 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.support.annotation.RequiresApi;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.ui.activities.MainActivity;
+import com.ultimatesoftil.citron.util.Utils;
 
 import java.util.Date;
 
 import static android.support.v4.app.NotificationCompat.PRIORITY_MIN;
+import static android.support.v4.app.NotificationCompat.getChannelId;
 
 /**
  * Created by Mike on 14/08/2018.
@@ -32,7 +36,10 @@ public class SmsSenderReceiver extends BroadcastReceiver {
         if(name!=null) {
             //send the sms
             Log.d("sms receiver start","");
-            SmsService.enqueueWork(context, intent);
+           if(isTablet(context)){
+               SmsService.enqueueWork(context, intent);
+
+           }
 
             //creating unique id for each specific notification
             int ID = (int) ((new Date().getTime() / 1000L) % Integer.MAX_VALUE);
@@ -40,7 +47,10 @@ public class SmsSenderReceiver extends BroadcastReceiver {
             //notify admin for customer being late
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             Intent notification = new Intent(context, MainActivity.class);
-            notification.putExtra("title", name);
+            String name1=intent.getStringExtra("name");
+            String phone=intent.getStringExtra("phone");
+            notification.putExtra("name",name1);
+            notification.putExtra("phone",phone);
             notification.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
 
             PendingIntent pi = PendingIntent.getActivity(context, ID, notification, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -63,5 +73,10 @@ public class SmsSenderReceiver extends BroadcastReceiver {
             notificationManager.notify(ID, mynotification.build());
             Log.d("random", String.valueOf(ID));
         }
+    }
+    public static boolean isTablet(Context context) {
+        return (context.getResources().getConfiguration().screenLayout
+                & Configuration.SCREENLAYOUT_SIZE_MASK)
+                >= Configuration.SCREENLAYOUT_SIZE_LARGE;
     }
 }

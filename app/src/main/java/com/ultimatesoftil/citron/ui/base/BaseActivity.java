@@ -2,7 +2,6 @@ package com.ultimatesoftil.citron.ui.base;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -12,24 +11,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 
-import com.ultimatesoftil.citron.GenericOrdersActivity;
+import com.ultimatesoftil.citron.ui.activities.GenericOrdersActivity;
 import com.ultimatesoftil.citron.R;
-import com.ultimatesoftil.citron.models.Client;
-import com.ultimatesoftil.citron.models.Order;
-import com.ultimatesoftil.citron.models.Product;
-import com.ultimatesoftil.citron.ui.SettingsActivity;
-import com.ultimatesoftil.citron.ui.ViewSamplesActivity;
-import com.ultimatesoftil.citron.ui.activities.MainActivity;
-import com.ultimatesoftil.citron.ui.activities.SettingsFragment;
+import com.ultimatesoftil.citron.ui.activities.ClientListFragment;
+import com.ultimatesoftil.citron.ui.activities.SettingsActivity;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import ezvcard.Ezvcard;
-import ezvcard.VCard;
-import ezvcard.property.Telephone;
 
 import static com.ultimatesoftil.citron.util.LogUtil.logD;
 import static com.ultimatesoftil.citron.util.LogUtil.makeLogTag;
@@ -125,7 +111,8 @@ public abstract class BaseActivity extends AppCompatActivity {
             case R.id.quotes:
 //                GenericOrdersFragment frag1=new GenericOrdersFragment();
 //                getSupportFragmentManager().beginTransaction().add(android.R.id.content, frag1).addToBackStack(null).commit();
-                startActivity(new Intent(BaseActivity.this, GenericOrdersActivity.class));
+                Intent i= new Intent(BaseActivity.this,GenericOrdersActivity.class);
+                startActivity(i);
                 Log.d("ss","going to orders");
                 break;
             case R.id.nav_samples:
@@ -133,8 +120,7 @@ public abstract class BaseActivity extends AppCompatActivity {
                 getSupportFragmentManager().beginTransaction().add(android.R.id.content, frag).addToBackStack(null).commit();
                 break;
             case R.id.nav_settings:
-                SettingsFragment fragment=new SettingsFragment();
-                getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragment).addToBackStack(null).commit();
+               startActivity(new Intent(BaseActivity.this, SettingsActivity.class));
             break;
 //            case R.id.rest:
 //            data=new HashMap<>();

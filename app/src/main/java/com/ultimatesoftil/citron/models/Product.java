@@ -58,14 +58,15 @@ public class Product implements Serializable{
 
     }
 
-    private PendingIntent intent;
 
-    public PendingIntent getIntent() {
-        return intent;
+    private int rqs;
+
+    public int getRqs() {
+        return rqs;
     }
 
-    public void setIntent(PendingIntent intent) {
-        this.intent = intent;
+    public void setRqs(int rqs) {
+        this.rqs = rqs;
     }
 
     double price;

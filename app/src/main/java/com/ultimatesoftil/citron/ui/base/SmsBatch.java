@@ -24,6 +24,9 @@ import com.ultimatesoftil.citron.adapters.SmsListAdapter;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.FButton;
 import com.ultimatesoftil.citron.ui.activities.ClientListFragment;
+import com.ultimatesoftil.citron.util.Utils;
+
+import java.util.ArrayList;
 
 /**
  * Created by Mike on 21/08/2018.
@@ -33,39 +36,57 @@ public class SmsBatch extends Fragment{
     private ListView listView;
     private FButton send;
     private TextInputEditText content;
+    private boolean isAll=false;
+    private ArrayList<Client>clients;
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         listView=(ListView) view.findViewById(R.id.listView22);
         send=(FButton)view.findViewById(R.id.sms_batch_send);
         content=(TextInputEditText)view.findViewById(R.id.sms_input);
-        final SmsListAdapter adapter= new SmsListAdapter(getActivity(),ClientListFragment.clients);
-        listView.setAdapter(adapter);
-        send.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            if(!TextUtils.isEmpty(content.getText().toString())){
-                for(int i=0;i< ClientListFragment.clients.size();i++){
-                    View v=getViewByPosition(i,listView);
-                    CheckBox checkBox=v.findViewById(R.id.sms_check);
-                    if(checkBox.isChecked()){
-                        Log.d("sending","message");
-                        sendMsg(getActivity(),content.getText().toString(),ClientListFragment.clients.get(i).getPhone());
+        Bundle bundle=getArguments();
+        if(bundle==null) {
+            final SmsListAdapter adapter = new SmsListAdapter(getActivity(), ClientListFragment.clients);
+            isAll=true;
+            listView.setAdapter(adapter);
+        }else{
+            isAll=false;
+            clients=(ArrayList<Client>) bundle.getSerializable("clients");
+            final SmsListAdapter adapter = new SmsListAdapter(getActivity(), clients);
+            listView.setAdapter(adapter);
+        }
+            send.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (!TextUtils.isEmpty(content.getText().toString())) {
+                        for (int i = 0; i < ClientListFragment.clients.size(); i++) {
+                            View v = getViewByPosition(i, listView);
+                            CheckBox checkBox = v.findViewById(R.id.sms_check);
+                            if (checkBox.isChecked()) {
+                                Log.d("sending", "message");
+                               if(isAll)
+                                sendMsg(getActivity(), content.getText().toString(), ClientListFragment.clients.get(i).getPhone());
+                               else
+                                   sendMsg(getActivity(),content.getText().toString(),clients.get(i).getPhone());
+                            }
+                        }
+                        getActivity().getSupportFragmentManager().popBackStack();
+                    } else {
+                        Snackbar.make(getActivity().findViewById(android.R.id.content), "נא הזן תוכן!", Snackbar.LENGTH_SHORT).show();
                     }
                 }
-                getActivity().getSupportFragmentManager().popBackStack();
-            }else {
-                Snackbar.make(getActivity().findViewById(android.R.id.content),"נא הזן תוכן!",Snackbar.LENGTH_SHORT).show();
-            }
-            }
 
-        });
+            });
+
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+       if(Utils.isTabletDevice(getActivity()))
         return inflater.inflate(R.layout.send_message,container,false);
+      else
+           return inflater.inflate(R.layout.send_message_small,container,false);
 
     }
     protected void sendMsg(Context context, String content,String number) {

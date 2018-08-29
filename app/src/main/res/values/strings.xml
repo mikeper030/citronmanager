@@ -100,5 +100,7 @@
     <string name="send">שליחת שיק ללקוח</string>
     <string name="update">עדכן</string>
     <string name="gen_message">שליחת הודעה כללית</string>
-    <string name="order_st">מצב הזמנות</string>
+    <string name="order_st">הזמנות ופעולות</string>
+    <string name="late">You\'ve passed the time we agreed. Please return the etrog as soon as possible.Thanks Shimon Badush</string>
+    <string name="general"><u>פעולות כלליות</u></string>
 </resources>

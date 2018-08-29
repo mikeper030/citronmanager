@@ -1,0 +1,279 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:fbutton="http://schemas.android.com/apk/res-auto"
+    android:background="@color/material_gray1">
+<ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+   <LinearLayout
+       android:layout_width="match_parent"
+       android:layout_height="1000dp"
+       android:orientation="vertical">
+
+       <com.ultimatesoftil.citron.models.FButton
+        android:id="@+id/FButton2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
+        android:text="עדכן פרטים"
+        android:background="@color/theme_primary_light"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
+
+       <LinearLayout
+           android:id="@+id/linearLayout2"
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:layout_marginStart="0dp"
+           android:layout_marginTop="8dp"
+           android:layout_gravity="center_horizontal"
+           android:orientation="vertical"
+           app:layout_constraintStart_toStartOf="parent"
+           app:layout_constraintTop_toBottomOf="@+id/textview2">
+
+
+           <android.support.design.widget.TextInputEditText
+               android:id="@+id/order_name"
+               android:layout_width="200dp"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:hint="@string/full_name"
+               android:inputType="text"
+               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+               android:textColor="@color/white"
+               android:textColorHint="@color/material_white_dark"
+               android:theme="@style/MyEditTextTheme"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/textview2" />
+
+           <android.support.design.widget.TextInputEditText
+               android:id="@+id/order_phone"
+               android:layout_width="200dp"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:hint="@string/home_phone"
+               android:inputType="number"
+               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+               android:textColor="@color/white"
+               android:textColorHint="@color/material_white_dark"
+               android:theme="@style/MyEditTextTheme"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/order_name" />
+
+           <android.support.design.widget.TextInputEditText
+               android:id="@+id/order_mobile"
+               android:layout_width="200dp"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:hint="@string/mobile"
+               android:inputType="number"
+               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+               android:textColor="@color/white"
+               android:textColorHint="@color/material_white_dark"
+               android:theme="@style/MyEditTextTheme"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/order_phone" />
+
+           <android.support.design.widget.TextInputEditText
+               android:id="@+id/order_address"
+               android:layout_width="200dp"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:hint="@string/address"
+               android:inputType="text"
+               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+               android:textColor="@color/white"
+               android:textColorHint="@color/material_white_dark"
+               android:theme="@style/MyEditTextTheme"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/order_mobile" />
+
+           <android.support.design.widget.TextInputEditText
+               android:id="@+id/add_email"
+               android:layout_width="200dp"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:hint="@string/email"
+               android:inputType="textEmailAddress"
+               android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+               android:textColor="@color/white"
+               android:textColorHint="@color/material_white_dark"
+               android:theme="@style/MyEditTextTheme"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/order_address" />
+       </LinearLayout>
+
+       <android.support.constraint.ConstraintLayout
+        android:id="@+id/constraintLayout"
+        android:layout_width="match_parent"
+        android:layout_marginTop="8dp"
+           android:layout_height="match_parent"
+        android:background="@drawable/layout_border_white"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+        <TextView
+            android:id="@+id/textView2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="16dp"
+            android:text="@string/fast_order"
+
+            android:textAppearance="@style/TextAppearance.AppCompat.Title"
+            android:textColor="@color/white"
+
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="40dp"
+            android:text="@string/product"
+            android:textColor="@color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+        <android.support.v7.widget.AppCompatSpinner
+            android:id="@+id/order_spinner"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="40dp"
+            app:layout_constraintStart_toEndOf="@+id/textView"
+            app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+        <android.support.design.widget.TextInputEditText
+            android:id="@+id/order_quantity"
+
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginTop="20dp"
+            android:hint="@string/type_quantitiy"
+            android:inputType="number"
+            android:textColor="@color/white"
+            android:textColorHint="@color/material_white_dark"
+            android:theme="@style/MyEditTextTheme"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/order_spinner" />
+
+        <android.support.v4.widget.NestedScrollView
+            android:id="@+id/ScrollView"
+            android:layout_width="match_parent"
+            android:layout_height="350dp"
+            android:layout_marginEnd="12dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toTopOf="@+id/FButton"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="1.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/order_quantity"
+            app:layout_constraintVertical_bias="0.32">
+
+            <LinearLayout
+                android:id="@+id/fields1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+
+                android:orientation="vertical"
+
+                app:layout_constraintTop_toBottomOf="@+id/order_quantity">
+
+            </LinearLayout>
+        </android.support.v4.widget.NestedScrollView>
+
+        <com.ultimatesoftil.citron.models.FButton
+            android:id="@+id/FButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:layout_marginStart="12dp"
+            android:text="@string/save"
+            android:textColor="@android:color/white"
+            app:layout_constraintBottom_toBottomOf="parent"
+
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.489"
+            app:layout_constraintStart_toStartOf="parent"
+            fbutton:buttonColor="@color/theme_primary_light"
+            fbutton:cornerRadius="5dp"
+            fbutton:shadowColor="@android:color/darker_gray"
+            fbutton:shadowEnabled="true"
+            fbutton:shadowHeight="5dp" />
+
+        <ProgressBar
+            android:id="@+id/progressBar2"
+            style="?android:attr/progressBarStyle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            android:layout_marginStart="8dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/FButton"
+            tools:visibility="gone" />
+
+    </android.support.constraint.ConstraintLayout>
+       <android.support.constraint.ConstraintLayout
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"/>
+
+       <android.support.constraint.ConstraintLayout
+
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:background="@drawable/layout_border_white">
+
+
+           <TextView
+               android:id="@+id/textView3"
+               android:layout_width="wrap_content"
+               android:layout_height="wrap_content"
+               android:layout_marginStart="8dp"
+               android:layout_marginTop="16dp"
+               android:text="@string/orders_notification"
+
+               android:textAppearance="@style/TextAppearance.AppCompat.Title"
+               android:textColor="@color/white"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toTopOf="parent" />
+
+           <ListView
+               android:id="@+id/notif_list_create"
+               android:layout_width="match_parent"
+               android:layout_height="465dp"
+               android:layout_marginBottom="8dp"
+               android:layout_marginEnd="12dp"
+               android:layout_marginStart="12dp"
+               android:layout_marginTop="24dp"
+               app:layout_constraintBottom_toBottomOf="parent"
+               app:layout_constraintEnd_toEndOf="parent"
+               app:layout_constraintStart_toStartOf="parent"
+               app:layout_constraintTop_toBottomOf="@+id/textView3">
+
+           </ListView>
+
+
+
+
+       </android.support.constraint.ConstraintLayout>
+   </LinearLayout>
+</ScrollView>
+
+</android.support.constraint.ConstraintLayout>
+
+
+

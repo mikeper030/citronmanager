@@ -56,6 +56,7 @@ import com.ultimatesoftil.citron.ui.base.BaseActivity;
  */
 public class ClientListFragment extends ListFragment {
     public static ArrayList<Client> clients=new ArrayList<>();
+    public static ArrayList<Client>data=new ArrayList<>();
     private Callback callback = dummyCallback;
     private FloatingActionButton fab;
     private FirebaseAuth auth;
@@ -66,6 +67,9 @@ public class ClientListFragment extends ListFragment {
     private ClientListAdapter adapter;
     private TextView textView;
     private ProgressBar progressBar;
+    private HashMap<String,Order> orderso=new HashMap<>();
+    private TextView notfound;
+
     /**
      * A callback interface. Called whenever a item has been selected.
      */
@@ -105,6 +109,7 @@ public class ClientListFragment extends ListFragment {
         textView= (TextView) view.findViewById(R.id.main_def);
         textView.setVisibility(View.VISIBLE);
         progressBar=(ProgressBar)view.findViewById(R.id.prg3);
+        notfound=(TextView)view.findViewById(R.id.ter);
         setTimer(progressBar);
         textView.setText(R.string.no_items);
 
@@ -177,18 +182,13 @@ public class ClientListFragment extends ListFragment {
                         setListAdapter(adapter);
                         adapter.setFilter(newList, newText);
                         if (newList.size() == 0) {
-                           // nit.setVisibility(View.VISIBLE);
+                            notfound.setVisibility(View.VISIBLE);
                             Log.d("defff", "visible");
                         } else {
-                           // nit.setVisibility(View.INVISIBLE);
+                        notfound.setVisibility(View.INVISIBLE);
                             Log.d("defff", "invisible");
                         }
-//                        String[] suggestions = new String[newList.size()];
-//
-//                        for (int i = 0; i < newList.size(); i++)
-//                            suggestions[i] = newList.get(i).getNotetitle();
 
-                        //populateAdapter(newText, suggestions);
                     }
                     return true;
 
@@ -215,8 +215,7 @@ public class ClientListFragment extends ListFragment {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_settings:
-                SettingsFragment fragobj = new SettingsFragment();
-                getActivity().getSupportFragmentManager().beginTransaction().add(android.R.id.content, fragobj).addToBackStack(null).commit();
+               startActivity(new Intent(getActivity(),SettingsActivity.class));
 
                 return true;
         }
@@ -310,7 +309,9 @@ public class ClientListFragment extends ListFragment {
 
             @Override
             public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
+                for(DataSnapshot dataSnapshot1:dataSnapshot.child("orders").getChildren()){
+                    orderso.put(dataSnapshot1.getKey(),dataSnapshot1.getValue(Order.class));
+                }
             }
 
             @Override
@@ -318,6 +319,7 @@ public class ClientListFragment extends ListFragment {
                 for(int i=0;i<clients.size();i++){
                     if(clients.get(i).getName().equals(dataSnapshot.child("details").child("name").getValue(String.class))){
                         clients.remove(i);
+                        data.remove(i);
                        adapter= new ClientListAdapter(getActivity(),clients);
                      setListAdapter(adapter);
                     }
@@ -344,7 +346,10 @@ public class ClientListFragment extends ListFragment {
 
     private void getUpdates(DataSnapshot dataSnapshot) {
          try {
-
+           orderso.clear();
+             for(DataSnapshot dataSnapshot1:dataSnapshot.child("orders").getChildren()){
+            orderso.put(dataSnapshot1.getKey(),dataSnapshot1.getValue(Order.class));
+        }
 
         Client client=dataSnapshot.child("details").getValue(Client.class);
         for (int i=0;i<clients.size();i++){
@@ -352,7 +357,16 @@ public class ClientListFragment extends ListFragment {
                 return;
 
         }
-        clients.add(client);
+        ArrayList<Order>orders= new ArrayList<>();
+
+
+             for (Map.Entry<String, Order> entry : orderso.entrySet()) {
+                orders.add(entry.getValue());
+                 // ...
+             }
+             client.setOrders(orders);
+             clients.add(client);
+         data.add(client);
         adapter= new ClientListAdapter(getActivity(),clients);
         setListAdapter(adapter);
     }catch (Exception e){

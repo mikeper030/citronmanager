@@ -21,6 +21,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -211,8 +212,7 @@ public class ClientDetailFragment extends BaseFragment {
         if (client != null) {
 
             collapsingToolbar.setTitle(client.getName());
-//            author.setText(dummyItem.author);
-//            quote.setText(dummyItem.content);
+
         }
 
         return rootView;
@@ -238,6 +238,8 @@ public class ClientDetailFragment extends BaseFragment {
         backdropImg=(ImageView)view.findViewById(R.id.backdrop);
         pic=(FloatingActionButton) view.findViewById(R.id.cam);
         loadBackdrop();
+        orderlist.setNestedScrollingEnabled(true);
+        notifications.setNestedScrollingEnabled(true);
         if(client!=null) {
             name.setText(client.getName() != null ? client.getName() : "");
             email.setText(client.getEmail() != null ? client.getEmail() : "");
@@ -261,8 +263,8 @@ public class ClientDetailFragment extends BaseFragment {
                     }
                     }
             });
-            setUpOrders();
-            setUpNotifications();
+           setUpOrders();
+           setUpNotifications();
         }
         addOrder.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -366,10 +368,8 @@ public class ClientDetailFragment extends BaseFragment {
 
     }
 
-    private void setUpOrders() {
-//        orders.add(dataSnapshot.getValue(Order.class));
-//            adapter=new OrderListAdapter(getActivity(),orders);
-//            orderlist.setAdapter(adapter);
+   private void setUpOrders() {
+
 
 
             Log.d("client", client.getName());
@@ -379,8 +379,8 @@ public class ClientDetailFragment extends BaseFragment {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     if (!dataSnapshot.hasChildren()) {
-                        def1.setVisibility(View.VISIBLE);
-                        def2.setVisibility(View.VISIBLE);
+                      def1.setVisibility(View.VISIBLE);
+                       def2.setVisibility(View.VISIBLE);
                         def1.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -412,8 +412,8 @@ public class ClientDetailFragment extends BaseFragment {
                     getUpdates(dataSnapshot);
 
                     if(orders.size()==0){
-                        def1.setVisibility(View.VISIBLE);
-                        def2.setVisibility(View.VISIBLE);
+                       def1.setVisibility(View.VISIBLE);
+                       def2.setVisibility(View.VISIBLE);
                         def1.setOnClickListener(new View.OnClickListener() {
                             @Override
                             public void onClick(View view) {
@@ -426,7 +426,7 @@ public class ClientDetailFragment extends BaseFragment {
                             }
                         });
                     }else{
-                        def1.setVisibility(View.INVISIBLE);
+                       def1.setVisibility(View.INVISIBLE);
                         def2.setVisibility(View.INVISIBLE);
                     }
                 }
@@ -444,7 +444,7 @@ public class ClientDetailFragment extends BaseFragment {
                             adapter= new OrderListAdapter(getActivity(),orders,client);
                             orderlist.setAdapter(adapter);
                             if(orders.size()==0){
-                                def1.setVisibility(View.VISIBLE);
+                              def1.setVisibility(View.VISIBLE);
                                 def2.setVisibility(View.VISIBLE);
                             }else{
                                 def1.setVisibility(View.INVISIBLE);
@@ -464,6 +464,7 @@ public class ClientDetailFragment extends BaseFragment {
 
                 }
             });
+
         }
 
     private void getUpdates(DataSnapshot dataSnapshot) {

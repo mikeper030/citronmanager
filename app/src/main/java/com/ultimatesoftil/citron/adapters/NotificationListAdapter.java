@@ -1,9 +1,13 @@
 package com.ultimatesoftil.citron.adapters;
 
+import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.Context;
+import android.content.Intent;
 import android.support.design.widget.Snackbar;
 import android.support.v7.widget.PopupMenu;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -25,9 +29,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.ultimatesoftil.citron.R;
+import com.ultimatesoftil.citron.models.AlarmParcel;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.models.SmsSenderReceiver;
 import com.ultimatesoftil.citron.util.Utils;
 
 import java.util.ArrayList;
@@ -86,7 +92,7 @@ public class NotificationListAdapter extends BaseAdapter {
             else
                convertView = LayoutInflater.from(context).inflate(R.layout.notification_item2, container, false);
         }
-        String [] products=context.getResources().getStringArray(R.array.products);
+        final String [] products=context.getResources().getStringArray(R.array.products);
         final Product item = (Product) getItem(position);
         ((TextView) convertView.findViewById(R.id.notif_item_product)).setText(products[Integer.parseInt(item.getKind())]);
         for(int i=0;i<orders.size();i++){
@@ -111,11 +117,31 @@ public class NotificationListAdapter extends BaseAdapter {
         switche.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
+                AlarmManager alarmManager=(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
                if(!b){
-                   AlarmManager alarmManager=(AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-                   if(item.getIntent()!=null){
-                       alarmManager.cancel(item.getIntent());
+
+                   if(item.getRqs()!=0){
+                       Intent intent = new Intent(context.getApplicationContext(), SmsSenderReceiver.class);
+                       intent.putExtra("name",client.getName());
+                       intent.putExtra("phone",client.getPhone());
+                       PendingIntent pendingIntent = PendingIntent.getBroadcast(context, item.getRqs(), intent, 0);
+                       if(item.getNotification()>System.currentTimeMillis()){
+                          AlarmParcel parcel= new AlarmParcel();
+                          parcel.setTime(item.getNotification());
+                          parcel.setRequest(item.getRqs());
+                           Utils.deleteNotification(parcel,context);
+                       }
+
+                       alarmManager.cancel(pendingIntent);
                    }
+               }else{
+                   Intent intent = new Intent(context.getApplicationContext(), SmsSenderReceiver.class);
+                   PendingIntent pendingIntent = PendingIntent.getBroadcast(context, item.getRqs(), intent, 0);
+                   alarmManager.set(AlarmManager.RTC_WAKEUP,item.getNotification(),pendingIntent);
+                   AlarmParcel parcel=new AlarmParcel();
+                   parcel.setTime(item.getNotification());
+                  parcel.setRequest(item.getRqs());
+                   Utils.saveNotification(parcel,context);
                }
                item.setNotification_checked(b);
                saveUpdate(item);

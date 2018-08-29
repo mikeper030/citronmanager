@@ -58,76 +58,102 @@
                         app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent" />
 
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/order_name"
-                        android:layout_width="200dp"
+                    <LinearLayout
+                        android:id="@+id/linearLayout2"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:hint="@string/full_name"
-                        android:inputType="text"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/material_white_dark"
-                        android:theme="@style/MyEditTextTheme"
+                        android:layout_marginStart="0dp"
+                        android:layout_marginTop="8dp"
+                        android:orientation="vertical"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/textview2" />
+                        app:layout_constraintTop_toBottomOf="@+id/textview2">
 
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/order_phone"
-                        android:layout_width="200dp"
+
+                        <android.support.design.widget.TextInputEditText
+                            android:id="@+id/order_name"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/full_name"
+                            android:inputType="text"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/white"
+                            android:textColorHint="@color/material_white_dark"
+                            android:theme="@style/MyEditTextTheme"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/textview2" />
+
+                        <android.support.design.widget.TextInputEditText
+                            android:id="@+id/order_phone"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/home_phone"
+                            android:inputType="number"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/white"
+                            android:textColorHint="@color/material_white_dark"
+                            android:theme="@style/MyEditTextTheme"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/order_name" />
+
+                        <android.support.design.widget.TextInputEditText
+                            android:id="@+id/order_mobile"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/mobile"
+                            android:inputType="number"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/white"
+                            android:textColorHint="@color/material_white_dark"
+                            android:theme="@style/MyEditTextTheme"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/order_phone" />
+
+                        <android.support.design.widget.TextInputEditText
+                            android:id="@+id/order_address"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/address"
+                            android:inputType="text"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/white"
+                            android:textColorHint="@color/material_white_dark"
+                            android:theme="@style/MyEditTextTheme"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/order_mobile" />
+
+                        <android.support.design.widget.TextInputEditText
+                            android:id="@+id/add_email"
+                            android:layout_width="200dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:hint="@string/email"
+                            android:inputType="textEmailAddress"
+                            android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                            android:textColor="@color/white"
+                            android:textColorHint="@color/material_white_dark"
+                            android:theme="@style/MyEditTextTheme"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toBottomOf="@+id/order_address" />
+                    </LinearLayout>
+
+                    <com.ultimatesoftil.citron.models.FButton
+                        android:id="@+id/FButton2"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
+                        android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
-                        android:hint="@string/home_phone"
-                        android:inputType="number"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
+                        android:layout_marginTop="8dp"
+                        android:text="עדכן פרטים"
+                        android:background="@color/theme_primary_light"
                         android:textColor="@color/white"
-                        android:textColorHint="@color/material_white_dark"
-                        android:theme="@style/MyEditTextTheme"
+                       android:visibility="gone"
+                        app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/order_name" />
-
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/order_mobile"
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:hint="@string/mobile"
-                        android:inputType="number"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/material_white_dark"
-                        android:theme="@style/MyEditTextTheme"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/order_phone" />
-
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/order_address"
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:hint="@string/address"
-                        android:inputType="text"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/material_white_dark"
-                        android:theme="@style/MyEditTextTheme"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/order_mobile" />
-
-                    <android.support.design.widget.TextInputEditText
-                        android:id="@+id/add_email"
-                        android:layout_width="200dp"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="8dp"
-                        android:hint="@string/email"
-                        android:inputType="textEmailAddress"
-                        android:textAppearance="@style/TextAppearance.AppCompat.Subhead"
-                        android:textColor="@color/white"
-                        android:textColorHint="@color/material_white_dark"
-                        android:theme="@style/MyEditTextTheme"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@+id/order_address" />
-
+                        app:layout_constraintTop_toBottomOf="@+id/linearLayout2" />
                 </android.support.constraint.ConstraintLayout>
 
             </LinearLayout>

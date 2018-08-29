@@ -7,6 +7,8 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SEND_SMS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.QUICKBOOT_POWERON" />
 
     <application
         android:name=".ui.activities.Application"
@@ -25,9 +27,22 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+       <activity android:name=".ui.activities.SettingsActivity"/>
+
+        <receiver android:name="com.ultimatesoftil.citron.models.AlarmReceiver" android:enabled="true" android:exported="true">
+            <intent-filter>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.QUICKBOOT_POWERON"/>
+                <!--For HTC devices-->
+                <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
+            </intent-filter>
+        </receiver>
         <activity
             android:name=".ui.activities.SplashActivity"
-            android:theme="@style/Theme.Design.NoActionBar"></activity>
+            android:theme="@style/Theme.Design.NoActionBar">
+
+        </activity>
 
         <receiver android:name=".models.SmsSenderReceiver" />
 
@@ -47,7 +62,7 @@
             android:name=".ui.SettingsActivity"
             android:label="Settings"
             android:parentActivityName=".ui.activities.MainActivity" />
-        <activity android:name=".GenericOrdersActivity"></activity>
+        <activity android:name=".ui.activities.GenericOrdersActivity"></activity>
     </application>
 
 </manifest>

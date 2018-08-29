@@ -100,13 +100,22 @@ public class ClientListAdapter extends BaseAdapter {
             final Client itemc = (Client) getItem(position);
             TextView name=(TextView) convertView.findViewById(R.id.list_item_name);
             name.setText(itemc.getName());
-            ((TextView) convertView.findViewById(R.id.list_item_phone)).setText(context.getResources().getString(R.string.mobile)+":"+" "+itemc.getPhone());
+            TextView phone=convertView.findViewById(R.id.list_item_phone);
+            phone.setText(context.getResources().getString(R.string.mobile)+":"+" "+itemc.getPhone());
+
             ((TextView) convertView.findViewById(R.id.list_item_added)).setText(itemc.getDateTimeFormatted());
             if(searchText!=null)
                 if(searchText.length()>0) {
                     //color your text here
-                    String desc = items.get(position).getName();
-                    SpannableStringBuilder sb=null;
+                    String desc=null;
+                    if(name.getText().toString().contains(searchText))
+                     desc = items.get(position).getName();
+                    else
+                    if(phone.getText().toString().contains(searchText))
+                      desc=items.get(position).getPhone();
+
+                        SpannableStringBuilder sb=null;
+
                     int index = desc.indexOf(searchText);
                     while (index > -1) {
                         sb = new SpannableStringBuilder(desc);
@@ -116,7 +125,11 @@ public class ClientListAdapter extends BaseAdapter {
                         index = desc.indexOf(searchText, index + 1);
 
                     }
+                    if(name.getText().toString().contains(searchText))
                     name.setText(sb);
+                    else
+                        if(phone.getText().toString().contains(searchText))
+                            phone.setText(sb);
 
                 }
             ((ImageButton)convertView.findViewById(R.id.client_menu)).setOnClickListener(new View.OnClickListener() {

@@ -202,21 +202,22 @@
                         app:layout_constraintHorizontal_bias="0.499"
                         app:layout_constraintStart_toStartOf="parent" />
 
-                    <ListView
-                        android:id="@+id/order_list"
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:layout_marginBottom="8dp"
-                        android:layout_marginEnd="8dp"
-                        android:layout_marginStart="8dp"
-                        android:layout_marginTop="70dp"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintHorizontal_bias="1.0"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent">
 
-                    </ListView>
+                        <ListView
+                            android:id="@+id/order_list"
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent"
+                            android:layout_marginBottom="8dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_marginStart="8dp"
+                            android:layout_marginTop="70dp"
+                            app:layout_constraintBottom_toBottomOf="parent"
+                            app:layout_constraintEnd_toEndOf="parent"
+                            app:layout_constraintHorizontal_bias="1.0"
+                            app:layout_constraintStart_toStartOf="parent"
+                            app:layout_constraintTop_toTopOf="parent">
+
+                        </ListView>
 
                     <ImageView
                         android:id="@+id/default_add_order"
@@ -226,8 +227,9 @@
                         android:layout_marginBottom="8dp"
                         android:layout_marginEnd="8dp"
                         android:layout_marginStart="8dp"
-                        android:src="@drawable/add_cart"
+                        android:src="@drawable/resz_add_cartpng"
                         android:visibility="gone"
+                        android:scaleType="fitCenter"
                         app:layout_constraintBottom_toTopOf="@+id/textView9"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintHorizontal_bias="0.5"
@@ -267,6 +269,7 @@
                         android:layout_marginTop="65dp"
                         tools:layout_editor_absoluteX="8dp"
                         tools:layout_editor_absoluteY="59dp" />
+
 
                     <TextView
                         android:id="@+id/deff2"

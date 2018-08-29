@@ -8,4 +8,11 @@
          android:title="@string/welcome"
         />
 </PreferenceCategory>
+    <PreferenceCategory
+        android:title="הגרות תוכן"
+       >
+        <Preference
+            android:title="תוכן התראת איחור לקוח"
+            android:key="alr"/>
+    </PreferenceCategory>
 </PreferenceScreen>

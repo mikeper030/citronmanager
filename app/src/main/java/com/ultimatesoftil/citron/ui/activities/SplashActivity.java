@@ -12,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.ultimatesoftil.citron.R;
+import com.ultimatesoftil.citron.util.Utils;
 
 /**
  * Created by Mike on 19/08/2018.
@@ -23,6 +24,7 @@ public class SplashActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
 
             setContentView(R.layout.splash);
+            if(Utils.isTabletDevice(this))
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
 
 

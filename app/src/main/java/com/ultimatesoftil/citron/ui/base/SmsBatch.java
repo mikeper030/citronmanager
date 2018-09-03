@@ -4,6 +4,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
 import android.support.design.widget.TextInputEditText;
@@ -12,11 +13,13 @@ import android.telephony.SmsManager;
 import android.telephony.SmsMessage;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.FrameLayout;
 import android.widget.ListView;
 
 import com.ultimatesoftil.citron.R;
@@ -37,7 +40,9 @@ public class SmsBatch extends Fragment{
     private FButton send;
     private TextInputEditText content;
     private boolean isAll=false;
-    private ArrayList<Client>clients;
+    private ArrayList<Client>clients,lateClients;
+    boolean late=false,owes=false,defaultb=true;
+
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -50,26 +55,100 @@ public class SmsBatch extends Fragment{
             isAll=true;
             listView.setAdapter(adapter);
         }else{
-            isAll=false;
-            clients=(ArrayList<Client>) bundle.getSerializable("clients");
-            final SmsListAdapter adapter = new SmsListAdapter(getActivity(), clients);
-            listView.setAdapter(adapter);
+            if(bundle.getSerializable("clients")!=null){
+                late=true;
+                isAll=false;
+                clients=(ArrayList<Client>) bundle.getSerializable("clients");
+                final SmsListAdapter adapter = new SmsListAdapter(getActivity(), clients);
+                listView.setAdapter(adapter);
+                content.setText(R.string.late);
+            }
+            else
+              if(bundle.getSerializable("owe")!=null){
+                 lateClients =(ArrayList<Client>) bundle.getSerializable("owe");
+                owes=true;
+                  String msg= PreferenceManager.getDefaultSharedPreferences(getActivity()).getString("debt", "null");
+                  if(msg.equals("null")){
+                      msg=getResources().getString(R.string.due_late);
+                      content.setText("default");
+
+
+                  }else{
+                      defaultb=false;
+                     content.setText(msg);
+                  }
+                  final SmsListAdapter adapter = new SmsListAdapter(getActivity(), lateClients);
+                  listView.setAdapter(adapter);
+              }
+
         }
             send.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
                     if (!TextUtils.isEmpty(content.getText().toString())) {
-                        for (int i = 0; i < ClientListFragment.clients.size(); i++) {
-                            View v = getViewByPosition(i, listView);
-                            CheckBox checkBox = v.findViewById(R.id.sms_check);
-                            if (checkBox.isChecked()) {
-                                Log.d("sending", "message");
-                               if(isAll)
-                                sendMsg(getActivity(), content.getText().toString(), ClientListFragment.clients.get(i).getPhone());
-                               else
-                                   sendMsg(getActivity(),content.getText().toString(),clients.get(i).getPhone());
+                        if(isAll){
+                            for (int i = 0; i < ClientListFragment.clients.size(); i++) {
+                                View v = getViewByPosition(i, listView);
+                                CheckBox checkBox = v.findViewById(R.id.sms_check);
+                                if (checkBox.isChecked()) {
+                                    Log.d("sending", "message");
+
+                                        sendMsg(getActivity(), content.getText().toString(), ClientListFragment.clients.get(i).getPhone());
+                                }
                             }
                         }
+                        else
+                            if(late){
+                                for (int i = 0; i < clients.size(); i++) {
+                                    View v = getViewByPosition(i, listView);
+                                    CheckBox checkBox = v.findViewById(R.id.sms_check);
+                                    if (checkBox.isChecked()) {
+                                        Log.d("sending", "message");
+
+                                        sendMsg(getActivity(), content.getText().toString(), clients.get(i).getPhone());
+
+                                    }
+                                }
+                            }
+                            else
+                                if(owes){
+                                    for (int i = 0; i < lateClients.size(); i++) {
+                                        View v = getViewByPosition(i, listView);
+                                        CheckBox checkBox = v.findViewById(R.id.sms_check);
+                                        if (checkBox.isChecked()) {
+                                            Log.d("sending", "message");
+                                            if(defaultb){
+                                               StringBuilder sb= new StringBuilder();
+                                               sb.append(getResources().getString(R.string.due_late));
+                                               sb.append(" ");
+                                               double debt=0;
+                                               for(int j=0;j<lateClients.get(i).getOrders().size();j++){
+                                                  if(lateClients.get(i).getOrders().get(j).getDue()!=0){
+                                                      debt+=lateClients.get(i).getOrders().get(j).getDue();
+                                                  }
+                                               }
+                                                sb.append(debt);
+                                                sb.append(" ");
+                                                sb.append("please pay your debt as soon as possible. Thanks, Shimon Badush.");
+                                                Log.d("smsmsg",sb.toString());
+                                                sendMsg(getActivity(),sb.toString() , lateClients.get(i).getPhone());
+                                            }
+
+                                            else{
+                                                sendMsg(getActivity(),content.getText().toString(), lateClients.get(i).getPhone());
+                                                Log.d("smsmsg","default");
+                                            }
+
+                                        }
+                                    }
+                                }
+
+                        Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "ההודעות נשלחו בהצלחה!", Snackbar.LENGTH_LONG);
+                        View v = snack.getView();
+                        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
+                        params.gravity = Gravity.TOP|Gravity.CENTER;
+                        v.setLayoutParams(params);
+                        snack.show();
                         getActivity().getSupportFragmentManager().popBackStack();
                     } else {
                         Snackbar.make(getActivity().findViewById(android.R.id.content), "נא הזן תוכן!", Snackbar.LENGTH_SHORT).show();

@@ -103,4 +103,15 @@
     <string name="order_st">הזמנות ופעולות</string>
     <string name="late">You\'ve passed the time we agreed. Please return the etrog as soon as possible.Thanks Shimon Badush</string>
     <string name="general"><u>פעולות כלליות</u></string>
+    <string name="due_late">Hello, you still have a debt of</string>
+    <string name="enter_emailb">נא הזן מייל</string>
+    <string name="instructions">נשלח לך מייל עם איפוס סיסמא</string>
+    <string name="retry">שגיאה אנא נסה שוב</string>
+    <string-array name="status_l">
+        <item>לא נבחר</item>
+        <item>קיבל-שולם</item>
+        <item>בהזמנה-שולם</item>
+        <item>קיבל-חייב</item>
+        <item>בהזמנה-חייב</item>
+    </string-array>
 </resources>

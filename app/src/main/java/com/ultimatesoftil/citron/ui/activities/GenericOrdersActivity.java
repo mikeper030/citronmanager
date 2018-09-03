@@ -2,7 +2,6 @@ package com.ultimatesoftil.citron.ui.activities;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
-import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Color;
 import android.os.Build;
@@ -19,7 +18,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -33,12 +31,10 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.ultimatesoftil.citron.R;
-import com.ultimatesoftil.citron.adapters.ClientListAdapter;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.FButton;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
-import com.ultimatesoftil.citron.ui.activities.MainActivity;
 import com.ultimatesoftil.citron.ui.base.SmsBatch;
 import com.ultimatesoftil.citron.util.Utils;
 
@@ -58,11 +54,13 @@ public class GenericOrdersActivity extends AppCompatActivity {
     private HashMap<String,Order> orderHashMap=new HashMap<>();
     private int counter=0;
     private ProgressDialog progressDialog;
-    private FButton clientsSend;
+    private FButton sendLate,sendDue;
     private TableRow  tr_bottom;
     private TableRow tr_head;
     private ArrayList<Client> lateClients=new ArrayList<>();
+    private ArrayList<Client> dueClients=new ArrayList<>();
     int c_purchased = 0, c_interested = 0, l_interested = 0, l_purchased = 0,c_late=0;
+    double due=0;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -72,7 +70,8 @@ public class GenericOrdersActivity extends AppCompatActivity {
             setContentView(R.layout.gen_order_small);
 
         }
-        clientsSend=(FButton)findViewById(R.id.owes);
+        sendDue=(FButton)findViewById(R.id.owes_sms);
+        sendLate =(FButton)findViewById(R.id.late_sms);
         if (Build.VERSION.SDK_INT >= 21) {
             Window window = getWindow();
 // clear FLAG_TRANSLUCENT_STATUS flag:
@@ -119,7 +118,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
                             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
                             break;
                         case 4:
-                           clientsSend.setOnClickListener(new View.OnClickListener() {
+                           sendLate.setOnClickListener(new View.OnClickListener() {
                                @Override
                                public void onClick(View view) {
                                 if(lateClients.size()>0){
@@ -139,6 +138,25 @@ public class GenericOrdersActivity extends AppCompatActivity {
                                     snack.show();
                                 }
 
+                               }
+                           });
+                           sendDue.setOnClickListener(new View.OnClickListener() {
+                               @Override
+                               public void onClick(View view) {
+                                   if(dueClients.size()>0){
+                                       Bundle bundle=new Bundle();
+                                       bundle.putSerializable("owe",dueClients);
+                                       SmsBatch frag=new SmsBatch();
+                                       frag.setArguments(bundle);
+                                       getSupportFragmentManager().beginTransaction().add(android.R.id.content, frag).addToBackStack(null).commit();
+                                   }else{
+                                       Snackbar snack = Snackbar.make(findViewById(android.R.id.content), "לא נמצאו לקוחות חייבים", Snackbar.LENGTH_LONG);
+                                       View v = snack.getView();
+                                       FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) v.getLayoutParams();
+                                       params.gravity = Gravity.TOP | Gravity.CENTER;
+                                       v.setLayoutParams(params);
+                                       snack.show();
+                                   }
                                }
                            });
                             break;
@@ -168,11 +186,13 @@ public class GenericOrdersActivity extends AppCompatActivity {
         final TextView t11 = createHeaderTextView("שם הלקוח");
         TextView t12 = createHeaderTextView("אתרוגים בהתעניינות");
         t12.setPadding(50,0,0,0);
-        TextView t13 = createHeaderTextView("לולבים בהתעניינות");
+        TextView t13 = createHeaderTextView("לולבים בהזמנה");
         t13.setPadding(50,0,0,0);
         TextView t14 = createHeaderTextView("אתרוגים נרכשו");
         TextView t15 = createHeaderTextView("לולבים נרכשו");
         TextView t16=createHeaderTextView("אתרוגים באיחור");
+        TextView t17=createHeaderTextView("חוב");
+        t17.setPadding(80,0,50,0);
 
         tr_head.addView(t11, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f)));
         tr_head.addView(t12, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f)));
@@ -180,6 +200,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
         tr_head.addView(t14, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.58f)));
         tr_head.addView(t15, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.5f)));
          tr_head.addView(t16,new TableRow.LayoutParams(0,TableRow.LayoutParams.WRAP_CONTENT,0.5f));
+         tr_head.addView(t17,new TableRow.LayoutParams(0,TableRow.LayoutParams.WRAP_CONTENT,0.5f));
         t1.addView(tr_head);
 
 
@@ -198,59 +219,93 @@ public class GenericOrdersActivity extends AppCompatActivity {
 
                             if (clients.get(i).getOrders() != null) {
                                 for (int j = 0; j < clients.get(i).getOrders().size(); j++) {
+                                   if(clients.get(i).getOrders().get(j).getProducts()!=null){
                                     for (int k = 0; k < clients.get(i).getOrders().get(j).getProducts().size(); k++) {
                                         Product product = clients.get(i).getOrders().get(j).getProducts().get(k);
-                                        if(product.getKind().equals("0")&&product.getStatus()==1&&product.getNotification()<System.currentTimeMillis()){
-                                            //time since return has passed he is late and will be eaten by a lion
-                                            boolean add=true;
-                                            for(int a=0;a<lateClients.size();a++){
-                                                if(clients.get(i).getName().equals(lateClients.get(a).getName())){
-                                                    add=false;
+                                        //check if client has due
+                                        if (product.getKind().equals("0") && product.getStatus() == 3 && product.getDue() != 0) {
+                                            //add to due counter
+                                            boolean add = true;
+                                            due += product.getDue();
+                                            for (int a = 0; a < dueClients.size(); a++) {
+                                                if (clients.get(i).getName().equals(dueClients.get(a).getName())) {
+                                                    add = false;
                                                 }
                                             }
-                                            if (add){
-                                                lateClients.add(clients.get(i));
-                                               sum5+=1;
+                                            if (add) {
+                                                dueClients.add(clients.get(i));
+                                                sum5 += 1;
                                             }
-
-                                            c_late+=1;
-
-                                        }
-                                        if(product.getKind().equals("0")&&product.getStatus()==3){
-                                           //client is running late
-                                            boolean add=true;
-                                            for(int a=0;a<lateClients.size();a++){
-                                                if(clients.get(i).getName().equals(lateClients.get(a).getName())){
-                                                    add=false;
+                                        } else if (((product.getKind().equals("1") && (product.getStatus() == 3) || (product.getKind().equals("1") && product.getStatus() == 4))) && product.getDue() != 0) {
+                                            due += product.getDue();
+                                            boolean add = true;
+                                            for (int a = 0; a < dueClients.size(); a++) {
+                                                if (clients.get(i).getName().equals(dueClients.get(a).getName())) {
+                                                    add = false;
                                                 }
                                             }
-                                            if (add)
+                                            if (add) {
                                                 lateClients.add(clients.get(i));
-
-                                            c_late+=1;
-                                            sum5+=1;
+                                                sum5 += 1;
+                                            }
                                         }
+
+                                        if (product.getKind().equals("0") && product.getStatus() == 1 && product.getNotification() < System.currentTimeMillis()) {
+                                            //product is citron and client is runing late -- did not come back from authority
+                                            boolean add = true;
+                                            for (int a = 0; a < lateClients.size(); a++) {
+                                                if (clients.get(i).getName().equals(lateClients.get(a).getName())) {
+                                                    add = false;
+                                                }
+                                            }
+                                            if (add) {
+                                                lateClients.add(clients.get(i));
+                                                sum5 += 1;
+                                            }
+
+                                            c_late += 1;
+
+                                        }
+//                                        if(product.getKind().equals("0")&&product.getStatus()==3){
+//
+//                                            boolean add=true;
+//                                            for(int a=0;a<lateClients.size();a++){
+//                                                if(clients.get(i).getName().equals(lateClients.get(a).getName())){
+//                                                    add=false;
+//                                                }
+//                                            }
+//                                            if (add)
+//                                                lateClients.add(clients.get(i));
+//
+//                                            c_late+=1;
+//                                            sum5+=1;
+//                                        }
                                         else
-                                        if (product.getKind().equals("0") && product.getStatus() == 2) {
-                                            c_purchased += 1;
-                                            sum1+=1;
-                                        } else {
-                                            if (product.getKind().equals("0") && product.getStatus() != 3) {
-                                                c_interested += 1;
-                                                sum2+=1;
+                                            //regular citron purchase
+                                            if (product.getKind().equals("0") && product.getStatus() == 2 || product.getKind().equals("0") && product.getStatus() == 3) {
+                                                c_purchased += 1;
+                                                sum1 += 1;
+                                            } else {
+                                                //order still in  process
+                                                if (product.getKind().equals("0") && product.getStatus() == 1) {
+                                                    c_interested += 1;
+                                                    sum2 += 1;
+                                                }
                                             }
-                                        }
-                                        if (product.getKind().equals("1") && product.getStatus() == 3) {
+                                        //lulav regular purchase
+                                        if (product.getKind().equals("1") && product.getStatus() == 1 || product.getKind().equals("1") && product.getStatus() == 3) {
                                             l_purchased += 1;
-                                            sum3+=1;
+                                            sum3 += 1;
                                         } else {
-                                            if (product.getKind().equals("1") && product.getStatus() != 3) {
+                                            //
+                                            if ((product.getKind().equals("1") && product.getStatus() == 2) || (product.getKind().equals("1") && product.getStatus() == 4)) {
                                                 l_interested += 1;
-                                                sum4+=1;
+                                                sum4 += 1;
                                             }
 
 
                                         }
+                                    }
                                     }
                                 }
 
@@ -268,15 +323,17 @@ public class GenericOrdersActivity extends AppCompatActivity {
                             TextView t111 = createRegTextView(clients.get(i).getName());
                             t111.setPadding(0,0,0,0);
                             TextView t112 = createRegTextView(String.valueOf(c_interested));
-                            t112.setPadding(200,0,0,0);
+                            t112.setPadding(150,0,0,0);
                             TextView t113 = createRegTextView(String.valueOf(l_interested));
-                            t113.setPadding(200,0,0,0);
+                            t113.setPadding(150,0,0,0);
                             TextView t114 = createRegTextView(String.valueOf(c_purchased));
-                            t114.setPadding(200,0,0,0);
+                            t114.setPadding(150,0,0,0);
                             TextView t115 = createRegTextView(String.valueOf(l_purchased));
-                            t115.setPadding(200,0,0,0);
+                            t115.setPadding(130,0,0,0);
                             TextView t116=createRegTextView(String.valueOf(c_late));
-                            t116.setPadding(200,0,0,0);
+                            t116.setPadding(100,0,0,0);
+                            TextView t117=createRegTextView(String.valueOf(due));
+                            t117.setPadding(130,0,0,0);
                             if(counter%2==0){
                                 t111.setTextColor(Color.GRAY);
                                 t112.setTextColor(Color.GRAY);
@@ -284,7 +341,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
                                 t114.setTextColor(Color.GRAY);
                                 t115.setTextColor(Color.GRAY);
                                 t116.setTextColor(Color.GRAY);
-
+                                t117.setTextColor(Color.GRAY);
                             }
 
                             content.addView(t111, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
@@ -293,7 +350,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
                             content.addView(t114, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                             content.addView(t115, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                             content.addView(t116,(new TableRow.LayoutParams(0,TableRow.LayoutParams.WRAP_CONTENT,0.8f)));
-                            // t1.addView(content);
+                           content.addView(t117,new TableRow.LayoutParams(35,TableRow.LayoutParams.WRAP_CONTENT,0.8f));
 
                             Message qemsg =handler.obtainMessage();
                             qemsg.obj=content;
@@ -306,6 +363,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
                             l_purchased=0;
                             c_purchased=0;
                             c_late=0;
+                            due=0;
                             counter++;
                         }
                         tr_bottom = new TableRow(getBaseContext());
@@ -322,22 +380,25 @@ public class GenericOrdersActivity extends AppCompatActivity {
                         TextView r3=createHeaderTextView(String.valueOf(sum1));
                         TextView r4=createHeaderTextView(String.valueOf(sum3));
                         TextView r5=createHeaderTextView(String.valueOf(sum5));
+                        TextView r6=createHeaderTextView(String.valueOf(due));
                         t.setPadding(0,0,0,0);
-                        r1.setPadding(200,0,0,0);
-                        r2.setPadding(200,0,0,0);
-                        r3.setPadding(200,0,0,0);
-                        r4.setPadding(200,0,0,0);
-                        r5.setPadding(200,0,0,0);
+                        r1.setPadding(155,0,20,0);
+                        r2.setPadding(170,0,0,0);
+                        r3.setPadding(170,0,0,0);
+                        r4.setPadding(160,0,0,0);
+                        r5.setPadding(125,0,0,0);
+                        r6.setPadding(120,0,0,0);
 
                         tr_bottom.addView(t, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
-                        tr_bottom.addView(r1, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
+                        tr_bottom.addView(r1,(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                         tr_bottom.addView(r2, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
-                        tr_bottom.addView(r3, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
+                        tr_bottom.addView(r3,(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                         tr_bottom.addView(r4, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                         tr_bottom.addView(r5, (new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
+                        tr_bottom.addView(r6,(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 0.8f)));
                         handler.sendEmptyMessage(3);
                         handler.sendEmptyMessage(4);
-                       // t1.addView(tr_bottom);
+
                     }
 
 
@@ -357,6 +418,7 @@ public class GenericOrdersActivity extends AppCompatActivity {
     private TextView createHeaderTextView(String text){
         TextView textView= new TextView(this);
         textView.setTextColor(getResources().getColor(R.color.white));
+
         textView.setTextSize(20);
         textView.setText(text);
         return textView;
@@ -440,7 +502,6 @@ public class GenericOrdersActivity extends AppCompatActivity {
 
             }
         }catch (Exception e){
-            clients.clear();
 
         }
     }

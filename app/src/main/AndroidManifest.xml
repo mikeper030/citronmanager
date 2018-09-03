@@ -28,7 +28,7 @@
             </intent-filter>
         </activity>
        <activity android:name=".ui.activities.SettingsActivity"/>
-
+<activity android:name=".FirebaseAuth.ForgotPassword"/>
         <receiver android:name="com.ultimatesoftil.citron.models.AlarmReceiver" android:enabled="true" android:exported="true">
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT"/>
@@ -38,6 +38,7 @@
                 <action android:name="com.htc.intent.action.QUICKBOOT_POWERON"/>
             </intent-filter>
         </receiver>
+        <activity android:name=".FirebaseAuth.MyAccount"/>
         <activity
             android:name=".ui.activities.SplashActivity"
             android:theme="@style/Theme.Design.NoActionBar">

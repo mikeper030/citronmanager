@@ -2,6 +2,7 @@ package com.ultimatesoftil.citron.ui.base;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
@@ -11,11 +12,23 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.MenuItem;
 
+import com.ultimatesoftil.citron.models.Client;
+import com.ultimatesoftil.citron.models.Order;
+import com.ultimatesoftil.citron.models.Product;
 import com.ultimatesoftil.citron.ui.activities.GenericOrdersActivity;
 import com.ultimatesoftil.citron.R;
 import com.ultimatesoftil.citron.ui.activities.ClientListFragment;
 import com.ultimatesoftil.citron.ui.activities.SettingsActivity;
 
+
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import ezvcard.Ezvcard;
+import ezvcard.VCard;
+import ezvcard.property.Telephone;
 
 import static com.ultimatesoftil.citron.util.LogUtil.logD;
 import static com.ultimatesoftil.citron.util.LogUtil.makeLogTag;
@@ -31,7 +44,7 @@ public abstract class BaseActivity extends AppCompatActivity {
     private static final String TAG = makeLogTag(BaseActivity.class);
 
     protected static final int NAV_DRAWER_ITEM_INVALID = -1;
-    //public static HashMap<Client,Order> data;
+    public static HashMap<Client,Order> data;
     private DrawerLayout drawerLayout;
     private Toolbar actionBarToolbar;
 
@@ -105,78 +118,26 @@ public abstract class BaseActivity extends AppCompatActivity {
      * @param item the selected navigation item
      */
     private void goToNavDrawerItem(int item) {
-        Log.d("item",String.valueOf(item));
+        Log.d("item", String.valueOf(item));
         switch (item) {
 
             case R.id.quotes:
 //                GenericOrdersFragment frag1=new GenericOrdersFragment();
 //                getSupportFragmentManager().beginTransaction().add(android.R.id.content, frag1).addToBackStack(null).commit();
-                Intent i= new Intent(BaseActivity.this,GenericOrdersActivity.class);
+                Intent i = new Intent(BaseActivity.this, GenericOrdersActivity.class);
                 startActivity(i);
-                Log.d("ss","going to orders");
+                Log.d("ss", "going to orders");
                 break;
             case R.id.nav_samples:
-                SmsBatch frag=new SmsBatch();
+                SmsBatch frag = new SmsBatch();
                 getSupportFragmentManager().beginTransaction().add(android.R.id.content, frag).addToBackStack(null).commit();
                 break;
             case R.id.nav_settings:
-               startActivity(new Intent(BaseActivity.this, SettingsActivity.class));
-            break;
-//            case R.id.rest:
-//            data=new HashMap<>();
 //
-//               String telephone=null;
-//                try{
-//                    File file = new File(Environment.getExternalStorageDirectory()+"/Download/cht.vcf");
-//                    List<VCard> vcards = Ezvcard.parse(file).all();
-//                    for (VCard vcard : vcards){
-//                      Client client=new Client();
-//                      try {
-//                          vcard.getFormattedName().getValue();
-//                      }catch (Exception e){
-//                          e.printStackTrace();
-//                          continue;
-//                      }
-//
-//
-//                      Log.d("Name: " ,vcard.getFormattedName().getValue());
-//                      String temp=vcard.getFormattedName().getValue();
-//                        String[] words = temp.split("\\s+");
-//                       StringBuilder sb=new StringBuilder();
-//                        double sum=0;
-//                        for (int i = 0; i < words.length; i++) {
-//                            words[i] = words[i].replaceAll("[^\\w]", "");
-//                        }
-//                       for (int i=0;i<words.length;i++){
-//                            try {
-//                              sum =Double.parseDouble(words[i]);
-//                            }catch (Exception e){
-//
-//                                sb.append(words[i]+" ");
-//                                e.printStackTrace();
-//                            }
-//                       }
-//                       client.setName(sb.toString());
-//                        Order order=new Order();
-//                        ArrayList<Product>products=new ArrayList<>();
-//                        Product product= new Product();
-//                        product.setKind("0");
-//                        product.setPrice(sum);
-//                        products.add(product);
-//                        order.setProducts(products);
-//                       Log.d("Telephone numbers:","");
-//                        for (Telephone tel : vcard.getTelephoneNumbers()){
-//                            System.out.println(tel.getTypes() + ": " + tel.getText());
-//                          telephone=tel.getText();
-//                          telephone=telephone.replace("+","");
-//                           client.setPhone(telephone);
-//                        }
-//                    data.put(client,order);
-//
-//                    }
-//                }catch(Exception e){e.printStackTrace();}
-//                break;
-       }
+                startActivity(new Intent(BaseActivity.this, SettingsActivity.class));
+                break;
+
+        }
     }
 
     /**
@@ -223,3 +184,58 @@ public abstract class BaseActivity extends AppCompatActivity {
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 }
+ //     data = new HashMap<>();
+//
+//                String telephone = null;
+//                try {
+//                    File file = new File(Environment.getExternalStorageDirectory() + "/Download/cht.vcf");
+//                    List<VCard> vcards = Ezvcard.parse(file).all();
+//                    for (VCard vcard : vcards) {
+//                        Client client = new Client();
+//                        try {
+//                            vcard.getFormattedName().getValue();
+//                        } catch (Exception e) {
+//                            e.printStackTrace();
+//                            continue;
+//                        }
+//
+//
+//                        Log.d("Name: ", vcard.getFormattedName().getValue());
+//                        String temp = vcard.getFormattedName().getValue();
+//                        String[] words = temp.split("\\s+");
+//                        StringBuilder sb = new StringBuilder();
+//                        double sum = 0;
+////                        for (int i = 0; i < words.length; i++) {
+////                            words[i] = words[i].replaceAll("[^\\w]", "");
+////                        }
+//                        for (int j = 0; j < words.length; j++) {
+//                            try {
+//                                sum = Double.parseDouble(words[j]);
+//                            } catch (Exception e) {
+//
+//                                sb.append(words[j] + " ");
+//                                e.printStackTrace();
+//                            }
+//                        }
+//                        client.setName(sb.toString());
+//                        Order order = new Order();
+//                        ArrayList<Product> products = new ArrayList<>();
+//                        Product product = new Product();
+//                        product.setKind("0");
+//                        product.setPrice(sum);
+//                        products.add(product);
+//                        order.setProducts(products);
+//                        Log.d("Telephone numbers:", "");
+//                        for (Telephone tel : vcard.getTelephoneNumbers()) {
+//                            System.out.println(tel.getTypes() + ": " + tel.getText());
+//                            telephone = tel.getText();
+//                            telephone = telephone.replace("+", "");
+//                            client.setPhone(telephone);
+//                        }
+//                        data.put(client, order);
+//
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//

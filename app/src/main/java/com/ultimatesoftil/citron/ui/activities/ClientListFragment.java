@@ -126,9 +126,11 @@ public class ClientListFragment extends ListFragment {
 //                    myRef.child("users").child(userID).child("clients").child(client.getName()).child("details").setValue(client);
 //                    myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").push().setValue(order);
 //                }
+//
+//
 
-            }
-        });
+           }
+       });
 
         initAuth();
         /// /Get Firebase auth instance
@@ -349,6 +351,7 @@ public class ClientListFragment extends ListFragment {
            orderso.clear();
              for(DataSnapshot dataSnapshot1:dataSnapshot.child("orders").getChildren()){
             orderso.put(dataSnapshot1.getKey(),dataSnapshot1.getValue(Order.class));
+
         }
 
         Client client=dataSnapshot.child("details").getValue(Client.class);
@@ -362,17 +365,21 @@ public class ClientListFragment extends ListFragment {
 
              for (Map.Entry<String, Order> entry : orderso.entrySet()) {
                 orders.add(entry.getValue());
-                 // ...
+
              }
              client.setOrders(orders);
              clients.add(client);
          data.add(client);
         adapter= new ClientListAdapter(getActivity(),clients);
         setListAdapter(adapter);
+
     }catch (Exception e){
-         clients.clear();
+e.printStackTrace();
+             //        clients.clear();
              adapter= new ClientListAdapter(getActivity(),clients);
          setListAdapter(adapter);
+
          }
     }
 }
+

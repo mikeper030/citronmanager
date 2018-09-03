@@ -2,6 +2,7 @@ package com.ultimatesoftil.citron.ui.activities;
 
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.preference.CheckBoxPreference;
@@ -23,6 +24,11 @@ import android.view.Window;
 import android.view.WindowManager;
 import android.widget.EditText;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.ultimatesoftil.citron.FirebaseAuth.EmailLogin;
 import com.ultimatesoftil.citron.R;
 
 /**
@@ -34,6 +40,12 @@ public class SettingsActivity extends PreferenceActivity {
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         addPreferencesFromResource(R.xml.app_preferences);
+        /// /Get Firebase auth instance
+       final FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseDatabase mFirebaseDatabase = FirebaseDatabase.getInstance();
+       DatabaseReference myRef = mFirebaseDatabase.getReference();
+        FirebaseUser user = auth.getCurrentUser();
+
         if (Build.VERSION.SDK_INT >= 21) {
             Window window = getWindow();
 // clear FLAG_TRANSLUCENT_STATUS flag:
@@ -43,6 +55,7 @@ public class SettingsActivity extends PreferenceActivity {
 // finally change the color
             window.setStatusBarColor(ContextCompat.getColor(this, R.color.theme_primary_light));
         }
+
         CheckBoxPreference welcome = (CheckBoxPreference) getPreferenceManager().findPreference("welcome");
         welcome.setOnPreferenceChangeListener(new android.preference.Preference.OnPreferenceChangeListener() {
             @Override
@@ -50,7 +63,38 @@ public class SettingsActivity extends PreferenceActivity {
                 return true;
             }
         });
-       Preference changealert=(Preference)getPreferenceManager().findPreference("alr");
+        Preference changeal=(Preference)getPreferenceManager().findPreference("all");
+        changeal.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+            @Override
+            public boolean onPreferenceClick(Preference preference) {
+                AlertDialog.Builder alert = new AlertDialog.Builder(SettingsActivity.this);
+                final EditText edittext = new EditText(getBaseContext());
+
+                alert.setTitle("הזן תוכן להתראה");
+
+                alert.setView(edittext);
+
+                alert.setPositiveButton("עדכן", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        if (!TextUtils.isEmpty(edittext.getText().toString()))
+                            PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("debt", edittext.getText().toString()).apply();
+                        else {
+                            PreferenceManager.getDefaultSharedPreferences(SettingsActivity.this).edit().putString("debt", "null").apply();
+                        }
+                    }
+                });
+
+                alert.setNegativeButton("ביטול", new DialogInterface.OnClickListener() {
+                    public void onClick(DialogInterface dialog, int whichButton) {
+                        // what ever you want to do with No option.
+                    }
+                });
+
+                alert.show();
+                return false;
+            }
+        });
+        Preference changealert=(Preference)getPreferenceManager().findPreference("alr");
        changealert.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
            @Override
            public boolean onPreferenceClick(Preference preference) {
@@ -81,6 +125,31 @@ public class SettingsActivity extends PreferenceActivity {
                return false;
            }
        });
+       Preference log=(Preference)getPreferenceManager().findPreference("logout");
+       Preference username=(Preference)getPreferenceManager().findPreference("username");
+        if(auth!=null&&user!=null&&user.getEmail()!=null){
+            username.setTitle(user.getEmail());
+            log.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    auth.signOut();
+                    startActivity(new Intent(SettingsActivity.this, EmailLogin.class));
+                    finish();
+
+                    return false;
+                }
+            });
+
+        }else {
+            log.setTitle("התחבר");
+            log.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
+                @Override
+                public boolean onPreferenceClick(Preference preference) {
+                    startActivity(new Intent(SettingsActivity.this,EmailLogin.class));
+                    return false;
+                }
+            });
+        }
     }
 
     }

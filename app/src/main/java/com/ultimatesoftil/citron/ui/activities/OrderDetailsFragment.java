@@ -1,13 +1,17 @@
 package com.ultimatesoftil.citron.ui.activities;
 
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -41,6 +45,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.GlideBitmapDrawable;
 import com.bumptech.glide.load.resource.drawable.GlideDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.target.Target;
@@ -56,9 +61,11 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import com.google.firebase.database.GenericTypeIndicator;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 import com.mindorks.paracamera.Camera;
@@ -67,10 +74,16 @@ import com.ultimatesoftil.citron.adapters.NotificationListAdapter;
 import com.ultimatesoftil.citron.models.Client;
 import com.ultimatesoftil.citron.models.Order;
 import com.ultimatesoftil.citron.models.Product;
+import com.ultimatesoftil.citron.models.SmtpMailer;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.util.ArrayList;
 import java.util.UUID;
+
+import static com.ultimatesoftil.citron.ui.activities.ClientDetailFragment.adapter;
+import static com.ultimatesoftil.citron.ui.activities.ClientDetailFragment.nadapter;
 
 /**
  * Created by Mike Peretz on 07/08/2018.
@@ -94,8 +107,9 @@ public class OrderDetailsFragment extends Fragment {
     private ListView notifications;
     private ArrayList<Product> notificationProducs=new ArrayList<>();
     private ArrayList<Order> orders=new ArrayList<>();
-    private int counter=0;
+   private String[]links;
     private double duea=0;
+    private Product[]temp;
     private TextInputEditText due;
     private Spinner payments;
     private int paymentindex=0;
@@ -114,12 +128,17 @@ public class OrderDetailsFragment extends Fragment {
     private FirebaseStorage storage;
     private StorageReference storageReference;
     private double total=0;
+    private ImageButton[]addimgs;
     private TextInputEditText cmt=null;
     private Spinner sp[]=null;
+    private int counter=0;
+    private ProgressBar progressBar;
+    private Context context;
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        context = container.getContext();
         return inflater.inflate(R.layout.order_details,container,false);
     }
 
@@ -138,6 +157,9 @@ public class OrderDetailsFragment extends Fragment {
         notifications=(ListView)view.findViewById(R.id.notif_list);
         notificationsEnabled=(Switch)view.findViewById(R.id.notif_switch);
         def1=(TextView)view.findViewById(R.id.notification_def);
+        progressBar=(ProgressBar)view.findViewById(R.id.progressBar3);
+        progressBar.setVisibility(View.INVISIBLE);
+        updateBtn=(Button)view.findViewById(R.id.btn);
         /// /Get Firebase auth instance
         auth = FirebaseAuth.getInstance();
         mFirebaseDatabase = FirebaseDatabase.getInstance();
@@ -145,6 +167,7 @@ public class OrderDetailsFragment extends Fragment {
         FirebaseUser user = auth.getCurrentUser();
         storage = FirebaseStorage.getInstance();
         storageReference = storage.getReference();
+
         try {
             userID = user.getUid();
         } catch (Exception e) {
@@ -180,11 +203,10 @@ public class OrderDetailsFragment extends Fragment {
 
             order = (Order) bundle.getSerializable("order");
             quantity.setText(String.valueOf(order.getQuantity()));
-            for (int i = 0; i < 2; i++) {
-                if(order.getProducts().get(0).getKind().equals(spinner.getItemAtPosition(i))){
-                    spinner.setSelection(i);
-               }
-            }
+                if(order.getProducts().get(0).getKind().equals("0")) {
+                 spinner.setSelection(0);
+                }else
+                spinner.setSelection(1);
 
             spinner.setEnabled(false);
             final int j = order.getQuantity();
@@ -197,11 +219,14 @@ public class OrderDetailsFragment extends Fragment {
                 public void run() {
                    int k=0;
                     Log.d("creating views","fdf");
-                    //alocating arrays
+                   //allocating array
                     pt = new EditText[j];
                     ot = new EditText[j];
                     dt=new EditText[j];
                     sp=new Spinner[j];
+                    temp=new Product[j];
+                    links=new String[j];
+                    addimgs=new ImageButton[j];
 
                     for (int a = 0; a < j; a++,k++)
                         addPriceField(parent,a, pt);
@@ -210,9 +235,12 @@ public class OrderDetailsFragment extends Fragment {
                     k++;
                     for (int i = 0; i < j; i++) {
                       //  addStatusField(parent, a + 1, ot);
-                     if(order.getProducts().get(i).getDue()!=0)
-                          showOwe(parent,k,dt,i);
-                         else
+                     if(order.getProducts().get(i).getDue()!=0) {
+                         if (spinner.getSelectedItemPosition() == 0) showOwe(parent, k, dt, i);
+                         else if (spinner.getSelectedItemPosition() == 1)
+                             showOwel(parent, k, dt, i);
+                     }
+                     else
                           addStatusField(parent,k,i);
 
                      k++;
@@ -249,27 +277,118 @@ public class OrderDetailsFragment extends Fragment {
         parent.addView(rowView,parent.getChildCount());
 
     }
-    public void addPriceField(LinearLayout parent, int parentindex, EditText[] editTexts) {
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == Camera.REQUEST_TAKE_PHOTO) {
+            Bitmap bitmap = camera.getCameraBitmap();
+            if (bitmap != null) {
+                try {
+                    //savebitmap(bitmap, itemname.getText().toString());
+                    if(counter<0){
+                        if(counter==-1){
+                            img1.setImageBitmap(bitmap);
+                        }else if(counter==-2){
+                            img2.setImageBitmap(bitmap);
+                        }else if(counter==-3){
+                            img3.setImageBitmap(bitmap);
+                        }
+                    }else {
+                        Product product=new Product();
+                        product.setRawImage(bitmap);
+                        temp[counter]=product;
+                        Log.d("counter",String.valueOf(counter));
+                        addimgs[counter].setImageBitmap(bitmap);
+                    }
+                addInsertBtn();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+//                image.setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View view) {
+//                        openImageInGallery(Uri.parse("file://" + Environment.getExternalStorageDirectory() + "/MyNotes/pictures/" + itemname.getText().toString() + ".jpg"));
+//                    }
+//                });
+            } else {
+                Snackbar.make(getActivity().findViewById(android.R.id.content), getResources().getString(R.string.error_cam), Snackbar.LENGTH_SHORT).show();
+            }
+
+        }
+    }
+
+    public void addPriceField(LinearLayout parent, final int parentindex, EditText[] editTexts) {
         LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View rowView = inflater.inflate(R.layout.price_field, null);
         // Add the new row before the add field button.
-         ImageButton image=rowView.findViewById(R.id.add_img_cr);
+         final ImageButton image=rowView.findViewById(R.id.add_img_cr);
+        addimgs[parentindex]=image;
         final ProgressBar progressBar=rowView.findViewById(R.id.prg1);
-         if(order.getProducts().get(parentindex).getPicLink()!=null){
+        if(order.getProducts().get(parentindex).getPicLink()!=null){
             progressBar.setVisibility(View.VISIBLE);
-             Glide.with(getActivity()).load(order.getProducts().get(parentindex).getPicLink()).placeholder(getResources().getDrawable(R.drawable.add_image)).listener(new RequestListener<String, GlideDrawable>() {
-                 @Override
-                 public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
-                     return false;
-                 }
+            Glide.with(getActivity()).load(order.getProducts().get(parentindex).getPicLink()).placeholder(getResources().getDrawable(R.drawable.add_image)).listener(new RequestListener<String, GlideDrawable>() {
+                @Override
+                public boolean onException(Exception e, String model, Target<GlideDrawable> target, boolean isFirstResource) {
+                    e.printStackTrace();
+                    return false;
+                }
 
-                 @Override
-                 public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
-                     progressBar.setVisibility(View.INVISIBLE);
-                     return false;
-                 }
-             }).into(image);
-         }
+                @Override
+                public boolean onResourceReady(GlideDrawable resource, String model, Target<GlideDrawable> target, boolean isFromMemoryCache, boolean isFirstResource) {
+                    progressBar.setVisibility(View.INVISIBLE);
+                    return false;
+                }
+            }).into(image);
+
+
+        }
+        image.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Log.d("clicked","image");
+                if (image.getDrawable().getConstantState() !=
+                        ContextCompat.getDrawable(getContext(), R.drawable.add_image).getConstantState()){
+                    AlertDialog.Builder builder;
+                    Log.d("clicked","image");
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                        builder = new AlertDialog.Builder(getActivity(), android.R.style.Theme_Material_Dialog_Alert);
+                    } else {
+                        builder = new AlertDialog.Builder(getActivity());
+                    }
+                    builder.setTitle("!")
+                            .setMessage(getResources().getString(R.string.switche))
+                            .setPositiveButton(getResources().getString(R.string.pht), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    counter=parentindex;
+                                    takePicture();
+                                }
+                            })
+                            .setNegativeButton(getResources().getString(R.string.watch), new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int which) {
+                                    GalleryViewerFragment fragment = new GalleryViewerFragment();
+                                    FragmentTransaction fragmentTransaction = getActivity().getSupportFragmentManager().beginTransaction();
+                                    Bundle bundle = new Bundle();
+
+                                    bundle.putString("link",order.getProducts().get(parentindex).getPicLink());
+                                    fragment.setArguments(bundle);
+                                    fragmentTransaction.add(android.R.id.content, fragment,"gallery");
+                                    fragmentTransaction.addToBackStack("gallery");
+                                    fragmentTransaction.commit();
+
+                                }
+                            })
+                            .setIcon(android.R.drawable.ic_dialog_alert)
+                            .show();
+                }else {
+                    Log.d("clicked","image");
+                    counter =parentindex;
+                    takePicture();
+                }
+            }
+        });
+
         TextInputEditText input=rowView.findViewById(R.id.number_edit_text);
         editTexts[parentindex]=input;
         input.setText(String.valueOf(order.getProducts().get(parentindex).getPrice()));
@@ -278,10 +397,78 @@ public class OrderDetailsFragment extends Fragment {
         setSaveListener(input,parent);
         parent.addView(rowView, parent.getChildCount());
     }
+    public void showOwel(final LinearLayout parent, final int index, final EditText[] texts, final int i) {
+        Log.d("replace to owe", String.valueOf(index));
+        try {
+            parent.removeViewAt(index);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View rowView = inflater.inflate(R.layout.status_owe, null);
+        final Spinner spinner = rowView.findViewById(R.id.status_sp2);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.status_l));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        final TextInputEditText text = rowView.findViewById(R.id.status_o);
+        text.setText(String.valueOf(order.getProducts().get(i).getDue()));
+        texts[i] = text;
+
+
+        spinner.setSelection(3);
+        //click listener for owe spinner
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+
+                if (pos==0||pos==1||pos==2) {
+                    Log.d("replace to status", String.valueOf(index));
+                    parent.removeViewAt(index);
+                    final View rowView = inflater.inflate(R.layout.status_field, null);
+                    Spinner spinner1 = rowView.findViewById(R.id.status_sp1);
+
+                    spinner1.setAdapter(adapter);
+                    spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+
+                            if (pos==3||pos==4) {
+                                Log.d("replace to owe", String.valueOf(index));
+                                showOwel(parent, index, texts, i);
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+                    Log.d("due",String.valueOf(order.getProducts().get(i).getDue()));
+                    text.setText(String.valueOf(order.getProducts().get(i).getDue()));
+
+                    parent.addView(rowView,index);
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        parent.addView(rowView,index);
+    }
     public void showOwe(final LinearLayout parent, final int index, final EditText[] texts, final int i) {
         Log.d("replace to owe", String.valueOf(index));
+        try {
+            parent.removeViewAt(index);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
 
-        parent.removeViewAt(index);
         final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final View rowView = inflater.inflate(R.layout.status_owe, null);
         final Spinner spinner = rowView.findViewById(R.id.status_sp2);
@@ -290,6 +477,7 @@ public class OrderDetailsFragment extends Fragment {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(adapter);
         final TextInputEditText text = rowView.findViewById(R.id.status_o);
+        text.setText(String.valueOf(order.getProducts().get(i).getDue()));
         texts[i] = text;
 
 
@@ -321,9 +509,9 @@ public class OrderDetailsFragment extends Fragment {
 
                         }
                     });
-                    if(order.getProducts().get(i).getDue()!=0){
+
                         text.setText(String.valueOf(order.getProducts().get(i).getDue()));
-                    }
+
                     parent.addView(rowView,index);
 
                 }
@@ -372,7 +560,7 @@ public class OrderDetailsFragment extends Fragment {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
                 if(counters[0]>order.getQuantity()-1) {
-                    addInsertBtn(parent);
+                    addInsertBtn();
                     Log.d("update","7");
                 }
                 counters[0]++;
@@ -527,16 +715,68 @@ public class OrderDetailsFragment extends Fragment {
 
     }
 
+
     public void saveOrder(final Order order){
         Query query=myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").orderByChild("time").equalTo(order.getTime());
         query.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-               String ref=dataSnapshot.getKey();
+               final String ref=dataSnapshot.getKey();
                 myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").child(ref).setValue(order).addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
-                     getActivity().getSupportFragmentManager().popBackStack();
+                        if (Integer.parseInt(quantity.getText().toString()) > 0) {
+                            for (int j = 0; j < 1; j++) {
+                                int[] def = new int[1];
+                                def[0] = 0;
+                                if (temp != null && temp[j] != null && temp[j].getRawImage() != null) {
+                                    try {
+                                        File img = saveBitmapToImg(temp[0].getRawImage(), String.valueOf(System.currentTimeMillis()));
+                                        uploadFile(Uri.fromFile(img),ref, def);
+                                        //product.setPicLink(imglink);
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                }
+                                if(payments.getSelectedItemPosition()==2) {
+                                    try {
+                                        if (img1.getDrawable().getConstantState() !=
+                                                ContextCompat.getDrawable(getContext(), R.drawable.add_image).getConstantState()) {
+                                            File img = null;
+                                            Bitmap bitmap = ((BitmapDrawable)img1.getDrawable()).getBitmap();
+                                            img = saveBitmapToImg(bitmap, String.valueOf(System.currentTimeMillis()));
+
+                                            uploadFile2(Uri.fromFile(img), ref, "img1",0);
+
+                                        }
+                                        if (img2.getDrawable().getConstantState() !=
+                                                ContextCompat.getDrawable(getContext(), R.drawable.add_image).getConstantState()) {
+                                            Bitmap bitmap = ((BitmapDrawable)img2.getDrawable()).getBitmap();
+                                            File img = null;
+                                            img = saveBitmapToImg(bitmap, String.valueOf(System.currentTimeMillis()));
+
+                                            uploadFile2(Uri.fromFile(img), ref, "img2",1);
+                                        }
+                                        if (img3.getDrawable().getConstantState() !=
+                                                ContextCompat.getDrawable(getContext(), R.drawable.add_image).getConstantState()) {
+                                            Bitmap bitmap = ((BitmapDrawable)img3.getDrawable()).getBitmap();
+                                            File img = null;
+                                            img = saveBitmapToImg(bitmap, String.valueOf(System.currentTimeMillis()));
+
+                                            uploadFile2(Uri.fromFile(img), ref, "img3",2);
+                                        }
+
+                                    } catch (Exception e) {
+                                        e.printStackTrace();
+                                    }
+                                    sendEmail();
+                                }
+                            }
+                        } else
+                            progressBar.setVisibility(View.INVISIBLE);
+
+                        getActivity().getSupportFragmentManager().popBackStack();
+
                     }
                 });
             }
@@ -561,6 +801,165 @@ public class OrderDetailsFragment extends Fragment {
 
             }
         });
+
+    }
+    @SuppressLint("StaticFieldLeak")
+    private void sendEmail() {
+        new AsyncTask<Void, Void, String>() {
+            @Override
+            protected String doInBackground(Void... voids) {
+                SmtpMailer mailer=new SmtpMailer();
+                mailer.setTo(new String[]{"<"+email.getText().toString()+">"});
+                String name1,name2,name3;
+                name1="c1";
+                name2="c2";
+                name3="c3";
+                if (img1.getDrawable().getConstantState() !=
+                        ContextCompat.getDrawable(context, R.drawable.add_image).getConstantState()) {
+                    Bitmap bitmap = ((BitmapDrawable) img1.getDrawable()).getBitmap();
+                    try {
+                        saveBitmapToImg(bitmap, name1);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        mailer.addAttachment(Environment.getExternalStorageDirectory() + "/salesmanager/pictures/" + name1+".jpg");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (img2.getDrawable().getConstantState() !=
+                        ContextCompat.getDrawable(context, R.drawable.add_image).getConstantState()) {
+                    Bitmap bitmap2 = ((BitmapDrawable) img2.getDrawable()).getBitmap();
+                    try {
+                        saveBitmapToImg(bitmap2,name2);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        mailer.addAttachment(Environment.getExternalStorageDirectory() + "/salesmanager/pictures/" + name2+".jpg");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                if (img3.getDrawable().getConstantState() !=
+                        ContextCompat.getDrawable(context, R.drawable.add_image).getConstantState()) {
+                    Bitmap bitmap = ((BitmapDrawable) img3.getDrawable()).getBitmap();
+                    try {
+                        saveBitmapToImg(bitmap, name3);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                    try {
+                        mailer.addAttachment(Environment.getExternalStorageDirectory() + "/salesmanager/pictures/" + name3+".jpg");
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                try {
+                    if(send.isChecked())
+                        mailer.send();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute();
+    }
+    private String uploadFile(Uri filePath, final String pushedref, final int[] index) {
+
+        final String[] id = {null};
+        if (filePath != null) {
+            final ProgressDialog progressDialog = new ProgressDialog(getActivity());
+            progressDialog.setTitle("Uploading...");
+            progressDialog.show();
+            // id[0] =UUID.randomUUID().toString();
+            StorageReference ref = storageReference.child("images/" + UUID.randomUUID().toString());
+            ref.putFile(filePath)
+                    .addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                            progressDialog.dismiss();
+                            @SuppressWarnings("VisibleForTests") final String  downloadUrl =
+                                    taskSnapshot.getMetadata().getDownloadUrl().toString();
+                            myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").child(pushedref).child("products").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    GenericTypeIndicator<ArrayList<Product>> t = new GenericTypeIndicator<ArrayList<Product>>() {};
+                                    final ArrayList<Product> products=dataSnapshot.getValue(t);
+                                    products.get(index[0]).setPicLink(downloadUrl);
+                                    links[0]=downloadUrl;
+                                    myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").child(pushedref).child("products").setValue(products, new DatabaseReference.CompletionListener() {
+                                        @Override
+                                        public void onComplete(DatabaseError databaseError, DatabaseReference databaseReference) {
+                                            index[0]++;
+
+                                            if(index[0]<Integer.parseInt(quantity.getText().toString())){
+                                                try {
+                                                    File img = saveBitmapToImg(temp[index[0]].getRawImage(), String.valueOf(System.currentTimeMillis()));
+                                                    Uri uri= Uri.fromFile(img);
+                                                    progressBar.setVisibility(View.INVISIBLE);
+                                                    uploadFile(uri,pushedref,index);
+                                                } catch (Exception e) {
+                                                    e.printStackTrace();
+                                                }
+
+                                            }else {
+                                                progressBar.setVisibility(View.INVISIBLE);
+                                                try {
+                                                    getActivity().getSupportFragmentManager().popBackStack();
+                                                }catch (Exception e){
+                                                    e.printStackTrace();
+                                                }
+
+                                            }
+                                        }
+                                    });
+
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
+                            //Toast.makeText(MainActivity.this, "Uploaded", Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss();
+                            Toast.makeText(getActivity(), "Failed "+e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    })
+                    .addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                        @Override
+                        public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                            double progress = (100.0 * taskSnapshot.getBytesTransferred() / taskSnapshot
+                                    .getTotalByteCount());
+                            progressDialog.setMessage("Uploaded " + (int) progress + "%");
+                        }
+                    });
+        }
+        return id[0];
+    }
+
+    public static File saveBitmapToImg(Bitmap bmp, String filename) throws Exception {
+        ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+        bmp.compress(Bitmap.CompressFormat.JPEG, 60, bytes);
+        File f = new File(Environment.getExternalStorageDirectory()+"/salesmanager/pictures/"+filename+
+                ".jpg");
+        File g = new File(Environment.getExternalStorageDirectory()+"/salesmanager/pictures/");
+        if(!g.exists())
+            g.mkdirs();
+
+        f.createNewFile();
+        FileOutputStream fo = new FileOutputStream(f);
+        fo.write(bytes.toByteArray());
+        fo.close();
+        return f;
 
     }
 //    private void setUpScrollView(final TextInputEditText quantity) {
@@ -637,7 +1036,7 @@ private void addPaymentmethod(final LinearLayout parent){
                 if(updateBtn!=null){
                     parent.removeView(updateBtn);
                     parent.removeView(notes);
-                    updateBtn=null;
+                  //  updateBtn=null;
 
                 }
                 addCheck(parent);
@@ -657,7 +1056,7 @@ private void addPaymentmethod(final LinearLayout parent){
 
             if(counters[1]>0) {
                 Log.d("update","9");
-                addInsertBtn(parent);
+                addInsertBtn();
             }
             counters[1]++;
 
@@ -713,7 +1112,7 @@ private void addPaymentmethod(final LinearLayout parent){
                                     public void onClick(DialogInterface dialog, int which) {
                                         counter=-1;
                                         takePicture();
-                                        addInsertBtn(parent);
+                                        addInsertBtn();
                                     }
                                 })
                                 .setNegativeButton(getResources().getString(R.string.watch), new DialogInterface.OnClickListener() {
@@ -760,7 +1159,7 @@ private void addPaymentmethod(final LinearLayout parent){
                                     public void onClick(DialogInterface dialog, int which) {
                                         counter=-2;
                                         takePicture();
-                                        addInsertBtn(parent);
+                                        addInsertBtn();
                                     }
                                 })
                                 .setNegativeButton(getResources().getString(R.string.watch), new DialogInterface.OnClickListener() {
@@ -807,7 +1206,7 @@ private void addPaymentmethod(final LinearLayout parent){
                                     public void onClick(DialogInterface dialog, int which) {
                                         counter=-3;
                                         takePicture();
-                                        addInsertBtn(parent);
+                                        addInsertBtn();
                                     }
                                 })
                                 .setNegativeButton(getResources().getString(R.string.watch), new DialogInterface.OnClickListener() {
@@ -852,46 +1251,47 @@ private void addPaymentmethod(final LinearLayout parent){
 
 
 }
-    private void addInsertBtn(LinearLayout parent) {
-        if (updateBtn == null) {
-            Button button = new Button(getActivity());
-            button.setTextColor(getResources().getColor(R.color.white));
-            button.setBackgroundColor(getResources().getColor(R.color.theme_primary_light));
-            button.setText(getResources().getString(R.string.update));
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    //update the order
+    private void addInsertBtn() {
+         try {
+             updateBtn.setVisibility(View.VISIBLE);
+             updateBtn.setOnClickListener(new View.OnClickListener() {
+                 @Override
+                 public void onClick(View view) {
+                     //update the order
 
 
-                    if(validateFields()){
+                     if(validateFields()){
 
-                        Order order=getOrder();
-                        saveOrder(order);
-                    }else{
-                        Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "נא הזן מחיר!", Snackbar.LENGTH_LONG);
-                        View v = snack.getView();
-                        FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
-                        params.gravity = Gravity.TOP|Gravity.CENTER;
-                        v.setLayoutParams(params);
-                        snack.show();
+                         Order order=getOrder();
+                         saveOrder(order);
+                     }else{
+                         Snackbar snack = Snackbar.make(getActivity().findViewById(android.R.id.content), "נא הזן מחיר!", Snackbar.LENGTH_LONG);
+                         View v = snack.getView();
+                         FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)v.getLayoutParams();
+                         params.gravity = Gravity.TOP|Gravity.CENTER;
+                         v.setLayoutParams(params);
+                         snack.show();
 
-                    }
+                     }
 
-                }
-            });
-            updateBtn = button;
-            parent.addView(button, parent.getChildCount());
-        }
+                 }
+             });
+         }catch (Exception e){
+             e.printStackTrace();
+         }
+
+
+
     }
     private void addDue(LinearLayout parent){
         LayoutInflater inflater=(LayoutInflater)getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View rowView=inflater.inflate(R.layout.due_field,null);
         due=rowView.findViewById(R.id.order_due);
-        setSaveListener(due,parent);
+
         if(order.getDue()!=0){
             due.setText(String.valueOf(order.getDue()));
         }
+        setSaveListener(due,parent);
         parent.addView(rowView,parent.getChildCount());
     }
 
@@ -904,10 +1304,8 @@ private void addPaymentmethod(final LinearLayout parent){
 
          @Override
          public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-//             if(updateBtn!=null){
-//                 parent.removeView(updateBtn);
-//             }
-             addInsertBtn(parent);
+
+             addInsertBtn();
              Log.d("update","10");
          }
 
@@ -970,6 +1368,7 @@ private void addPaymentmethod(final LinearLayout parent){
             //product.setTime(System.currentTimeMillis());
             product.setPrice(pt[j]!=null?Double.parseDouble(pt[j].getText().toString()):null);
             try {
+                product.setStatus(sp[j].getSelectedItemPosition());
                 product.setDue(dt[j]!=null?Double.parseDouble(dt[j].getText().toString()):null);
             }catch (Exception E){
                 E.printStackTrace();
@@ -977,7 +1376,8 @@ private void addPaymentmethod(final LinearLayout parent){
 
             }
 
-            product.setStatus(sp[j].getSelectedItemPosition());
+
+
             //check if product image taken
             //if(notifications[j]!=0){
            //     setNotification(product,j);

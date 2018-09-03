@@ -95,7 +95,7 @@ public class ClientDetailFragment extends BaseFragment {
     private FirebaseAuth.AuthStateListener mAuthListener;
     private DatabaseReference myRef;
     private ListView orderlist;
-    private OrderListAdapter adapter;
+    public static OrderListAdapter adapter;
     private ArrayList<Order> orders=new ArrayList<>();
     private Button addOrder;
     private ListView notifications;
@@ -108,6 +108,7 @@ public class ClientDetailFragment extends BaseFragment {
     private FloatingActionButton pic;
     private Camera camera;
     private FirebaseStorage storage;
+    public static NotificationListAdapter nadapter;
     private StorageReference storageReference;
 
     public static File saveBitmapToImg(Bitmap bmp, String filename) throws Exception {
@@ -326,7 +327,7 @@ public class ClientDetailFragment extends BaseFragment {
         final int[] count = {0};
 
       final ArrayList<Order>orders=new ArrayList<>();
-        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addListenerForSingleValueEvent(new ValueEventListener() {
+        myRef.child("users").child(userID).child("clients").child(client.getName()).child("orders").addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 if (dataSnapshot.hasChildren()) {
@@ -337,13 +338,15 @@ public class ClientDetailFragment extends BaseFragment {
                     }
                     if (count[0] == dataSnapshot.getChildrenCount()) {
                         for (int i = 0; i < orders.size(); i++) {
-                            for (int j = 0; j < orders.get(i).getProducts().size(); j++) {
-                                if (orders.get(i).getProducts().get(j).getStatus() == 1) {
-                                    notificationProducs.add(orders.get(i).getProducts().get(j));
+                            if(orders.get(i).getProducts()!=null) {
+                                for (int j = 0; j < orders.get(i).getProducts().size(); j++) {
+                                    if (orders.get(i).getProducts().get(j).getStatus() == 1) {
+                                        notificationProducs.add(orders.get(i).getProducts().get(j));
+                                    }
                                 }
                             }
-                            NotificationListAdapter adapter = new NotificationListAdapter(getActivity(), notificationProducs, orders, client,false);
-                            notifications.setAdapter(adapter);
+                            nadapter = new NotificationListAdapter(getActivity(), notificationProducs, orders, client,false);
+                            notifications.setAdapter(nadapter);
 
                         }
                         defff1.setVisibility(View.INVISIBLE);
@@ -512,7 +515,7 @@ public class ClientDetailFragment extends BaseFragment {
                 address.setText(client.getAddress() != null ? client.getAddress() : "");
                 mobile.setText(client.getPhone() != null ? client.getPhone() : "");
                 home.setText(client.getHomephone() != null ? client.getHomephone() : "");
-                setUpOrders();
+              setUpOrders();
                 setUpNotifications();
                 aswitch.setChecked(client.isNotifications_enabled());
                 aswitch.setText(client.isNotifications_enabled()? "פעיל":"כבוי");

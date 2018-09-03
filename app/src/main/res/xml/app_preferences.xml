@@ -12,7 +12,25 @@
         android:title="הגרות תוכן"
        >
         <Preference
-            android:title="תוכן התראת איחור לקוח"
+            android:title="שינוי תוכן התראת איחור לקוח"
             android:key="alr"/>
+        <Preference
+            android:title="שינוי תוכן התראת חוב לקוח"
+            android:key ="all"/>
+
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:title="חשבון"
+        >
+        <Preference
+            android:key="username"
+             />
+           <Preference
+               android:key="logout"
+               android:title="התנתק"/>
+           <Preference
+               android:title="אפשרויות נוספות"
+               android:key="settings"/>
+
     </PreferenceCategory>
 </PreferenceScreen>

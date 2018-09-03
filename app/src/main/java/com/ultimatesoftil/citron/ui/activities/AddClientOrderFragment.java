@@ -198,7 +198,8 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-               String item=adapterView.getItemAtPosition(i).toString();
+               quantity.setText("");
+                String item=adapterView.getItemAtPosition(i).toString();
                 name=item;
             }
 
@@ -244,9 +245,14 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
                               addStatusText(parent);
 
                               ot =new EditText[j];
-                              //product individual status spinner
+                              //product individual status spinner for citron order
+                              if(spinner.getSelectedItemPosition()==0)
                               for (int a = 0; a < j; a++)
-                                  addStatusField(parent, a + 1, ot);
+                                  addStatusFieldc(parent, a + 1, ot);
+                              if(spinner.getSelectedItemPosition()==1)
+                                  for (int a = 0; a < j; a++)
+                                      addStatusFieldl(parent, a + 1, ot);
+
                               //total field
                               addtotal(parent);
                               addDue(parent);
@@ -453,7 +459,62 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         });
     }
 
+    public void showOwel(final LinearLayout parent, final int index, final EditText[] texts, final int i) {
+        Log.d("replace to owe", String.valueOf(index));
 
+        parent.removeViewAt(index);
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View rowView = inflater.inflate(R.layout.status_owe_l, null);
+        final Spinner spinner = rowView.findViewById(R.id.status_sp2);
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.status_l));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        final TextInputEditText text = rowView.findViewById(R.id.status_o);
+        texts[i - 1] = text;
+
+
+        spinner.setSelection(3);
+        //click listener for owe spinner
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                String item = adapterView.getItemAtPosition(pos).toString();
+                if (pos==0||pos==1||pos==2) {
+                    Log.d("replace to status", String.valueOf(index));
+                    parent.removeViewAt(index);
+                    final View rowView = inflater.inflate(R.layout.status_field, null);
+                    Spinner spinner1 = rowView.findViewById(R.id.status_sp1);
+
+                    spinner1.setAdapter(adapter);
+                    spinner1.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                        @Override
+                        public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long l) {
+                            String item=adapterView.getItemAtPosition(pos).toString();
+                            if (pos==3||pos==4) {
+                                Log.d("replace to owe", String.valueOf(index));
+                                showOwel(parent, index, texts, i);
+                            }
+                        }
+
+                        @Override
+                        public void onNothingSelected(AdapterView<?> adapterView) {
+
+                        }
+                    });
+
+                    parent.addView(rowView,index);
+
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        parent.addView(rowView,index);
+    }
     public void showOwe(final LinearLayout parent, final int index, final EditText[] texts, final int i) {
         Log.d("replace to owe", String.valueOf(index));
 
@@ -515,8 +576,48 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
         parent.removeAllViews();
     }
 
+    private void addStatusFieldl(final LinearLayout parent, final int i, final EditText[] editTexts) {
+        final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        final View rowView = inflater.inflate(R.layout.status_field_l, null);
+        final Spinner spinner=rowView.findViewById(R.id.status_sp1);
+        dt=new EditText[Integer.parseInt(quantity.getText().toString())];
+        sp[i-1]=spinner;
 
-    private void addStatusField (final LinearLayout parent, final int i, final EditText[] editTexts) {
+
+        final ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                getActivity(), R.layout.simple_spinner_my, getResources().getStringArray(R.array.status_l));
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        spinner.setAdapter(adapter);
+
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long l) {
+                int n = Integer.parseInt(quantity.getText().toString());
+                EditText text = rowView.findViewById(R.id.status_o);
+                switch (position){
+                    case 3:
+                        editTexts[i - 1] = text;
+                        showOwel(parent, i + n, dt, i);
+                        break;
+
+                    case 4:
+                        editTexts[i - 1] = text;
+                        showOwel(parent, i + n, dt, i);
+                        break;
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+        parent.addView(rowView, parent.getChildCount() );
+    }
+
+    private void addStatusFieldc (final LinearLayout parent, final int i, final EditText[] editTexts) {
         final LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         final LayoutInflater inflater1 = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 
@@ -1360,7 +1461,12 @@ public class AddClientOrderFragment extends Fragment implements DatePickerDialog
 
                                         }else {
                                                progressBar.setVisibility(View.INVISIBLE);
-                                               getActivity().getSupportFragmentManager().popBackStack();
+                                               try {
+                                                   getActivity().getSupportFragmentManager().popBackStack();
+                                               }catch (Exception e){
+                                                   e.printStackTrace();
+                                               }
+
                                            }
                                         }
                                     });
